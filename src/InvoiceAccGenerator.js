@@ -48,7 +48,7 @@ class InvoiceAccGenerator {
     return await this.pdfDoc.save();
   }
 
-  async _generate(outputPath = "invoice.pdf") {
+  async _generate(outputPath = "invoiceCus.pdf") {
     this.pdfDoc = await PDFDocument.create();
 
     this.page = this.pdfDoc.addPage([595.28, 841.89]);
@@ -605,10 +605,10 @@ class InvoiceAccGenerator {
         }
       
       }
+    } else {
+      y -=15;
     }
     
-
-    y -=15;
     this._drawText("TOTAL NET WEIGHT :", 40, y, fontSize);
 
     let text = this.data.net_weight_kg + " KGS.";

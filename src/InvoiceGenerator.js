@@ -605,10 +605,10 @@ class InvoiceGenerator {
         }
       
       }
+    } else {
+      y -=15;
     }
-    
 
-    y -=15;
     this._drawText("TOTAL NET WEIGHT :", 40, y, fontSize);
 
     let text = this.data.net_weight_kg + " KGS.";
