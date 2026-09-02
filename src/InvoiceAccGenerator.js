@@ -9,7 +9,7 @@ import fontkit from '@pdf-lib/fontkit';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 let y_end ;
-class InvoiceGenerator {
+class InvoiceAccGenerator {
   static HEADER_IMAGE = path.resolve(
     __dirname,
     '../public/GSL_header_vector.png'
@@ -95,7 +95,7 @@ class InvoiceGenerator {
   }
 
   async _drawHeader() {
-    const headerBytes = fs.readFileSync(InvoiceGenerator.HEADER_IMAGE);
+    const headerBytes = fs.readFileSync(InvoiceAccGenerator.HEADER_IMAGE);
     const headerImage = await this.pdfDoc.embedPng(headerBytes);
 
     const headerDims = headerImage.scale(0.25);
@@ -294,7 +294,7 @@ class InvoiceGenerator {
     const rowHeight = 15; // ความสูงของแต่ละแถว
 
     for (const item of this.data.line_items) {
-
+  
       this._drawText(item.invoice_description || "", 40, currentY - 15, fontSize);
 
       this._drawText(item.bag_qty +" x "+item.pallet_qty+" KGS = "+item.qty_mt + " MT" || "0.00", 320, currentY - 15, fontSize);
@@ -370,7 +370,7 @@ class InvoiceGenerator {
     y = y - 30
     this._drawText(text, x, y, fontSize);
 
-    if(this.data.freight_cost != 0 && this.data.freight_cost != null) {
+    if(this.data.freight_cost != null && this.data.freight_cost != 0) {
       y -= 15;
       text = "FREIGHT"
       textWidth = this.font.widthOfTextAtSize(text, fontSize);
@@ -422,7 +422,7 @@ class InvoiceGenerator {
       x = this.page.getWidth() - textWidth - 120;
       this._drawText(text , x, y, fontSize);
 
-      text = Number(this.data.total_invoice_amount).toLocaleString('en-US', {
+      text = Number(this.data.total_amount).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
@@ -505,7 +505,7 @@ class InvoiceGenerator {
 
     y -= 15 
 
-    text = "(TOTAL US DOLLARS " + this._numberToWords(this.data.total_invoice_amount) + " ONLY)" ;
+    text = "(TOTAL US DOLLARS " + this._numberToWords(this.data.total_invoice_amount) + " )" ;
     this._drawText(text, 40, y, fontSize);
 
     y_end = y-15;
@@ -522,19 +522,19 @@ class InvoiceGenerator {
     /***** packing line */
     this._drawText("PACKING : " , 40, y, fontSize);
     this._drawText(this.data.packing_remark , 80, y, fontSize);
-    if(this.data.packing_remark2 != null && this.data.packing_remark2 != null) {
+    if(this.data.packing_remark2 != null && this.data.packing_remark2 != "") {
       y -=15;
       this._drawText(this.data.packing_remark2 , 80, y, fontSize);
     }
-    if(this.data.packing_remark3 != null && this.data.packing_remark3 != null) {
+    if(this.data.packing_remark3 != null && this.data.packing_remark3 != "") {
       y -=15;
       this._drawText(this.data.packing_remark3 , 80, y, fontSize);
     }
-    if(this.data.packing_remark4 != null && this.data.packing_remark4 != null) {
+    if(this.data.packing_remark4 != null && this.data.packing_remark4 != "") {
       y -=15;
       this._drawText(this.data.packing_remark4 , 80, y, fontSize);
     }
-    if(this.data.packing_remark5 != null && this.data.packing_remark5 != null) {
+    if(this.data.packing_remark5 != null && this.data.packing_remark5 != "") {
       y -=15;
       this._drawText(this.data.packing_remark5 , 80, y, fontSize);
     }
@@ -673,6 +673,7 @@ class InvoiceGenerator {
     return lines;
   }
 
+
   _numberToWords(amount) {
     amount = String(amount).replace(/,/g, "");
 
@@ -736,4 +737,4 @@ class InvoiceGenerator {
   }
 }
 
-export default InvoiceGenerator;
+export default InvoiceAccGenerator;

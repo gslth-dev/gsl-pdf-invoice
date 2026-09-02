@@ -73,7 +73,7 @@ class PIGenerator {
     return await this.pdfDoc.save();
   }
 
-  async _generate(outputPath = "Order_confirmation.pdf") {
+  async _generate(outputPath = this.data.invoice_type+".pdf") {
     this.pdfDoc = await PDFDocument.create();
 
     this.page = this.pdfDoc.addPage([595.28, 841.89]);
@@ -135,7 +135,7 @@ class PIGenerator {
   }
 
   _drawTitle() {
-    const text = "PROFORMA INVOICE";
+    const text = this.data.invoice_type == "proforma_invoice" ? "PROFORMA INVOICE" : this.data.invoice_type == "order_confirmation" ?"ORDER CONFIRMATION" :"undifine_type";
 
     const textWidth = this.font.widthOfTextAtSize(text, 20);
 
@@ -144,7 +144,7 @@ class PIGenerator {
     const x = (pageWidth - textWidth) / 2;
 
     this._drawText(
-      "PROFORMA INVOICE",
+      text,
       x,
       710,
       20,
@@ -162,53 +162,65 @@ class PIGenerator {
     const rightLabelX = 400;
     const rightValueX = 450;    
 
-    const startY = 690;
+    let startY = 690;
+    const startrightY = 690;
     const lineGap = 15; 
   
     this._drawText("SOLD TO : ", leftX, startY, labelSize, true);
-    this._drawText(this.data.bill_to_name, valueX-30, startY, valueSize);
+    this._drawText(this.data.customer, valueX-30, startY, valueSize);
 
-    const billToY = startY;
-    const billToLines = this._splitText(
-        " " + this.data.bill_to_address,
-        220,       
-        this.font,
-        valueSize
-    );
+    startY -= 15;
+    this._drawText(this.data.address1, valueX-30, startY, valueSize);
 
-    billToLines.forEach((line, index) => {
-      this._drawText(
-          line,
-          valueX-30,
-          billToY - (lineGap * (index+1)),
-          valueSize
-      );
-    });
+    if(this.data.address2){
+      startY -= 15;
+      this._drawText(this.data.address2, valueX-30, startY, valueSize);
+    }
+    if(this.data.address3){
+      startY -= 15;
+      this._drawText(this.data.address3, valueX-30, startY, valueSize);
+    }
+    if(this.data.address4){
+      startY -= 15;
+      this._drawText(this.data.address4, valueX-30, startY, valueSize);
+    }
+    if(this.data.address5){
+      startY -= 15;
+      this._drawText(this.data.address5, valueX-30, startY, valueSize);
+    }
+    if(this.data.address6){
+      startY -= 15;
+      this._drawText(this.data.address6, valueX-30, startY, valueSize);
+    }
+    startY -= 15;
+    this._drawText("SHIPPED TO :", leftX, startY, labelSize, true);
+    this._drawText(this.data.ship_to, valueX-25, startY, valueSize);
 
-    this._drawText("PI NO.  ", rightLabelX, startY, labelSize, true);
-    this._drawText(": " +this.data.contract_pi_no, rightValueX, startY , valueSize);
+
+    this._drawText("PI NO.  ", rightLabelX, startrightY, labelSize, true);
+    this._drawText(": " +this.data.contract_pi_no, rightValueX, startrightY , valueSize);
 
     // this._drawText("DATE :", rightLabelX+100, startY - (lineGap * 0.5), labelSize, true);
     // this._drawText(invoice_date_formattedDateUTC, rightLabelX+135, startY - (lineGap * 0.5), valueSize);
 
-    this._drawText("DATE ", rightLabelX, startY - (lineGap * 1), labelSize, true);
-    const due_date_obj = new Date(this.data.due_date);
+    this._drawText("DATE ", rightLabelX, startrightY - (lineGap * 1), labelSize, true);
+    const date_obj = new Date();
 
-    const due_date_formattedDateUTC = due_date_obj.toLocaleDateString('en-US', {
+    const date_formattedDateUTC = date_obj.toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
       year: 'numeric',
       timeZone: 'UTC' // Forces UTC interpretation
     }).toUpperCase();
-    this._drawText(": " +due_date_formattedDateUTC, rightValueX, startY - (lineGap * 1), valueSize);
+    this._drawText(": " +date_formattedDateUTC, rightValueX, startrightY - (lineGap * 1), valueSize);
 
-    this._drawText("PO NO.", rightLabelX, startY - (lineGap * 2), labelSize, true);
-    this._drawText(": " +this.data.customer_po_no, rightValueX, startY - (lineGap * 2), valueSize);
+    this._drawText("PO NO.", rightLabelX, startrightY - (lineGap * 2), labelSize, true);
+    this._drawText(": " +this.data.customer_po_no, rightValueX, startrightY - (lineGap * 2), valueSize);
 
 
 
-    this._drawText("SHIPPED TO :", leftX, startY - (lineGap * 4), labelSize, true);
-    this._drawText(this.data.ship_to, valueX-30, startY - (lineGap * 4), valueSize);
+    
+    y_end = startY-40
   }
 
   _drawCustomerInfo2() {
@@ -280,7 +292,7 @@ class PIGenerator {
   }
 
   _drawTable() {
-    let y = 590;
+    let y = y_end;
     const fontSize = 12;
     const quantityX = 340;
 
@@ -325,12 +337,15 @@ class PIGenerator {
       total_bag_qty +=item.bag_qty;
 
       this._drawText(index, 45, currentY - 15, fontSize);
-      this._drawText(item.description || "", 70, currentY - 15, fontSize);
+      this._drawText(item.description + " " + item.product_name|| "", 70, currentY - 15, fontSize);
 
       this._drawText(item.bag_qty +" x "+item.pallet_qty+" KGS = "+item.qty_mt + " MT" || "0.00", 320, currentY - 15, fontSize);
       this._drawText(item.unit_price_usd_mt || "0.00", 450, currentY - 15, fontSize);
 
-      const amountText = item.line_amount || "";
+      const amountText =  Number(item.line_amount).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })|| "";
       let textWidth = 0;
       let amountX = this.page.getWidth() - 40; // ค่า default ถ้าไม่มีข้อความ
 
@@ -356,7 +371,7 @@ class PIGenerator {
 
     y = y+15
 
-    const totalText = 'TOTAL CIF CHENNAI, INDIA';
+    const totalText = 'TOTAL ' + this.data.delivery_terms;
     textWidth = 0;
     let amountX = this.page.getWidth() - 100; // ค่า default ถ้าไม่มีข้อความ
 
@@ -370,7 +385,11 @@ class PIGenerator {
 
     // this._drawText(totalText, 300, y - 30, fontSize);
 
-    text = this.data.total_invoice_amount;
+    text = Number(this.data.total_invoice_amount).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
     x = this.page.getWidth() - textWidth - 40;
 
@@ -394,7 +413,7 @@ class PIGenerator {
         color: rgb(0, 0, 0),
     });
 
-    text = this.data.amountText;
+    text = "(TOTAL US DOLLARS " + this._numberToWords(this.data.total_invoice_amount) + " )" ;
 
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
 
@@ -423,47 +442,83 @@ class PIGenerator {
     
     y -=15;
     this._drawText("PACKING ", 40, y, fontSize);
-    this._drawText(": IN BAGS OF ABOUT 250 KGS NET EACH", 140, y, fontSize);
+    this._drawText(": " + this.data.packing_remark , 80, y, fontSize);
+    if(this.data.packing_remark2 != null && this.data.packing_remark2 != "") {
+      y -=15;
+      this._drawText(this.data.packing_remark2 , 80, y, fontSize);
+    }
+    if(this.data.packing_remark3 != null && this.data.packing_remark3 != "") {
+      y -=15;
+      this._drawText(this.data.packing_remark3 , 80, y, fontSize);
+    }
+    if(this.data.packing_remark4 != null && this.data.packing_remark4 != "") {
+      y -=15;
+      this._drawText(this.data.packing_remark4 , 80, y, fontSize);
+    }
+    if(this.data.packing_remark5 != null && this.data.packing_remark5 != "") {
+      y -=15;
+      this._drawText(this.data.packing_remark5 , 80, y, fontSize);
+    }
+    
     y -=15;
-    this._drawText(": STUFFED INTO 1X20' CONTAINER", 140, y, fontSize);
+    if(this.data.delivery_terms == "VISAKHAPATNAM (VIZAG SEAPORT), INDIA" || this.data.delivery_terms == "SURABAYA, INDONESIA" || this.data.delivery_terms == "TAIWAN" || this.data.delivery_terms == "HO CHI MINH, VIETNAM" || this.data.delivery_terms == "NHAVA SHEVA, INDIA" || this.data.delivery_terms == "CHENNAI PORT, INDIA" || this.data.delivery_terms == "YANGZHOU / BEIHAI, CHINA") {
+      this._drawText("DELIVERY", 40, y, fontSize);
 
-    y -=15;
-    this._drawText("DELIVERY", 40, y, fontSize);
-    this._drawText(": BY SEA FROM ANY THAILAND PORTS TO CHENNAI PORT, INDIA", 140, y, fontSize);
-    y -=15;
+      this._drawText(": BY SEA FROM ANY THAILAND PORTS TO " + this.data.delivery_terms, 140, y, fontSize);
+      y -=15;
+    } 
+    
 
     this._drawText("SHIPMENT", 40, y, fontSize);
-    this._drawText(": 1X20' CONTAINER TO BE SHIPPED FROM THAILAND WITHIN JULY 2026 (ETD BASIS)", 140, y, fontSize);
+    this._drawText(": " + this.data.shipment, 140, y, fontSize);
     y -=15;
 
     this._drawText("TERM OF PAYMENT :", 40, y, fontSize);
     this._drawText(": "+ this.data.payment_terms, 140, y, fontSize);
 
 
+    if(this.data.last_of_ship_ment != "" && this.data.last_of_ship_ment != null) {
+      y -=15;
+      this._drawText("LASTEST OF SHIPMENT", 40, y, fontSize);
+      this._drawText(": "+ this.data.last_of_ship_ment, 140, y, fontSize);
+    }
+
+    
+    if(this.data.expiry_date_of_lc != "" && this.data.expiry_date_of_lc != null) {
+      y -=15;
+      this._drawText("EXPIRY DATE OF L/C", 40, y, fontSize);
+      this._drawText(": "+ this.data.expiry_date_of_lc, 140, y, fontSize);
+    }
+
+    if(this.data.tolerace != "" && this.data.tolerace != null) {
+      y -=15;
+      this._drawText("TOLERANCE", 40, y, fontSize);
+      this._drawText(": "+ this.data.tolerace, 140, y, fontSize);
+    }
     y -=15;
 
     this._drawText("BANK NAME ", 40, y, fontSize);
-    this._drawText(": BANK_NAME", 140, y, fontSize);
+    this._drawText(": "+ this.data.bank_name, 140, y, fontSize);
 
     y -=15;
 
     this._drawText("BANK ADDRESS ", 40, y, fontSize);
-    this._drawText(": BANK_ADDRESS", 140, y, fontSize);
+    this._drawText(": "+ this.data.bank_address, 140, y, fontSize);
 
     y -=15;
 
     this._drawText("ACCOUNT NAME ", 40, y, fontSize);
-    this._drawText(": ACCOUNT NAME", 140, y, fontSize);
+    this._drawText(": "+ this.data.account_name, 140, y, fontSize);
 
     y -=15;
 
     this._drawText("ACCOUNT NO ", 40, y, fontSize);
-    this._drawText(": ACCOUNT NO", 140, y, fontSize);
+    this._drawText(": "+ this.data.account_number, 140, y, fontSize);
 
     y -=15;
 
     this._drawText("S.W.I.F.T ", 40, y, fontSize);
-    this._drawText(": KASITHBK", 140, y, fontSize);
+    this._drawText(": "+ this.data.s_w_i_f_t, 140, y, fontSize);
 
 
     y -=50;
@@ -576,6 +631,68 @@ class PIGenerator {
     }
 
     return lines;
+  }
+
+  _numberToWords(amount) {
+    amount = String(amount).replace(/,/g, "");
+
+    const [integerPart, decimalPart = "00"] = amount.split(".");
+    const number = parseInt(integerPart, 10);
+
+    const ones = [
+        "", "ONE", "TWO", "THREE", "FOUR", "FIVE",
+        "SIX", "SEVEN", "EIGHT", "NINE", "TEN",
+        "ELEVEN", "TWELVE", "THIRTEEN", "FOURTEEN",
+        "FIFTEEN", "SIXTEEN", "SEVENTEEN", "EIGHTEEN",
+        "NINETEEN"
+    ];
+
+    const tens = [
+        "", "", "TWENTY", "THIRTY", "FORTY",
+        "FIFTY", "SIXTY", "SEVENTY", "EIGHTY", "NINETY"
+    ];
+
+    function convert(n) {
+        if (n < 20) {
+            return ones[n];
+        }
+
+        if (n < 100) {
+            return tens[Math.floor(n / 10)] +
+                (n % 10 ? " " + ones[n % 10] : "");
+        }
+
+        if (n < 1000) {
+            return ones[Math.floor(n / 100)] +
+                " HUNDRED" +
+                (n % 100 ? " " + convert(n % 100) : "");
+        }
+
+        if (n < 1000000) {
+            return convert(Math.floor(n / 1000)) +
+                " THOUSAND" +
+                (n % 1000 ? " " + convert(n % 1000) : "");
+        }
+
+        if (n < 1000000000) {
+            return convert(Math.floor(n / 1000000)) +
+                " MILLION" +
+                (n % 1000000 ? " " + convert(n % 1000000) : "");
+        }
+
+        return convert(Math.floor(n / 1000000000)) +
+            " BILLION" +
+            (n % 1000000000 ? " " + convert(n % 1000000000) : "");
+    }
+
+    const words = convert(number);
+
+    // ถ้าไม่มีทศนิยม หรือเป็น .00
+    if (decimalPart === "00") {
+        return `${words} ONLY`;
+    }
+
+    return `${words} AND ${decimalPart.padEnd(2, "0").slice(0, 2)}/100`;
   }
 }
 
