@@ -608,6 +608,7 @@ class InvoiceAccGenerator {
     } else {
       y -=15;
     }
+    
 
     this._drawText("TOTAL NET WEIGHT :", 40, y, fontSize);
 
