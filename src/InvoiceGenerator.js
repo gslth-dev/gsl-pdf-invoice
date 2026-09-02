@@ -542,43 +542,43 @@ class InvoiceGenerator {
 
      /***** SHIPPING MARK line */
     this._drawText("SHIPPING MARK : ", 40, y, fontSize);
-    this._drawText( this.data.shipping_remark , valueX, y , fontSize);
+    this._drawText( this.data.shipping_remark , valueX+5, y , fontSize);
 
     if(this.data.shipping_remark2 != null && this.data.shipping_remark2 != ""){
       y -=15;
-      this._drawText(this.data.shipping_remark2, valueX, y , fontSize);
+      this._drawText(this.data.shipping_remark2, valueX+5, y , fontSize);
     }
     if(this.data.shipping_remark3 != null && this.data.shipping_remark3 != ""){
       y -=15;
-      this._drawText(this.data.shipping_remark3, valueX, y , fontSize);
+      this._drawText(this.data.shipping_remark3, valueX+5, y , fontSize);
     }
     if(this.data.shipping_remark4 != null && this.data.shipping_remark4 != ""){
       y -=15;
-      this._drawText(this.data.shipping_remark4, valueX, y , fontSize);
+      this._drawText(this.data.shipping_remark4, valueX+5, y , fontSize);
     }
     if(this.data.shipping_remark5 != null && this.data.shipping_remark5 != ""){
       y -=15;
-      this._drawText(this.data.shipping_remark5, valueX, y , fontSize);
+      this._drawText(this.data.shipping_remark5, valueX+5, y , fontSize);
     }
     if(this.data.shipping_remark6 != null && this.data.shipping_remark6 != ""){
       y -=15;
-      this._drawText(this.data.shipping_remark6, valueX, y , fontSize);
+      this._drawText(this.data.shipping_remark6, valueX+5, y , fontSize);
     }
     if(this.data.shipping_remark7 != null && this.data.shipping_remark7 != ""){
       y -=15;
-      this._drawText(this.data.shipping_remark7, valueX, y , fontSize);
+      this._drawText(this.data.shipping_remark7, valueX+5, y , fontSize);
     }
     if(this.data.shipping_remark8 != null && this.data.shipping_remark8 != ""){
       y -=15;
-      this._drawText(this.data.shipping_remark8, valueX, y , fontSize);
+      this._drawText(this.data.shipping_remark8, valueX+5, y , fontSize);
     }
     if(this.data.shipping_remark9 != null && this.data.shipping_remark9 != ""){
       y -=15;
-      this._drawText(this.data.shipping_remark9, valueX, y , fontSize);
+      this._drawText(this.data.shipping_remark9, valueX+5, y , fontSize);
     }
     if(this.data.shipping_remark10 != null && this.data.shipping_remark10 != ""){
       y -=15;
-      this._drawText(this.data.shipping_remark10, valueX, y , fontSize);
+      this._drawText(this.data.shipping_remark10, valueX+5, y , fontSize);
     }
 
     let count_batch = 0;
@@ -605,10 +605,10 @@ class InvoiceGenerator {
         }
       
       }
+    } else {
+      y -=15;
     }
-    
 
-    y -=15;
     this._drawText("TOTAL NET WEIGHT :", 40, y, fontSize);
 
     let text = this.data.net_weight_kg + " KGS.";
