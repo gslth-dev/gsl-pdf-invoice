@@ -738,4 +738,5 @@ class InvoiceGenerator {
   }
 }
 
-export default InvoiceGenerator;
+// export default InvoiceGenerator;
+export { InvoiceGenerator as GenService };
