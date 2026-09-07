@@ -199,7 +199,7 @@ class PackingListGenerator {
     // this._drawText(invoice_date_formattedDateUTC, rightLabelX+135, startY - (lineGap * 0.5), valueSize);
 
     this._drawText("INVOICE NO. :  ", rightLabelX, startYright, labelSize, true);
-    this._drawText(this.data.invoice_no, rightValueX, startYright , valueSize);
+    this._drawText(this.data.invoice_number, rightValueX, startYright , valueSize);
 
     if(this.data.consignee != null && this.data.consignee !="") {
       startYright -=15

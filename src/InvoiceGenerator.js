@@ -140,7 +140,7 @@ class InvoiceGenerator {
   
     let leftY = startY;
     this._drawText("INVOICE NO. :", leftX, leftY, labelSize, true);
-    this._drawText(this.data.invoice_no, valueX, leftY, valueSize);
+    this._drawText(this.data.invoice_number, valueX, leftY, valueSize);
 
     leftY -= lineGap
     this._drawText("SALE ORDER NO. :", leftX, leftY, labelSize, true);
