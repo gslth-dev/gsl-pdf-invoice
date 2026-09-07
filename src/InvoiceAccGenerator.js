@@ -12,7 +12,7 @@ let y_end ;
 class InvoiceAccGenerator {
   static HEADER_IMAGE = path.resolve(
     __dirname,
-    '../public/GSL_header_vector.png'
+    './images/GSL_header_vector.png'
   );
 
   constructor(data) {
@@ -28,13 +28,13 @@ class InvoiceAccGenerator {
     this.page = this.pdfDoc.addPage([595.28, 841.89]);
 
     const fontBytes = fs.readFileSync(
-      path.resolve(__dirname, '../fonts/THSarabunNew.ttf')
+      path.resolve(__dirname, './fonts/THSarabunNew.ttf')
     );
 
     this.font = await this.pdfDoc.embedFont(fontBytes);
 
     const boldBytes = fs.readFileSync(
-      path.resolve(__dirname, '../fonts/THSarabunNew Bold.ttf')
+      path.resolve(__dirname, './fonts/THSarabunNew Bold.ttf')
     );
 
     this.bold = await this.pdfDoc.embedFont(boldBytes);
@@ -144,7 +144,7 @@ class InvoiceAccGenerator {
 
     leftY -= lineGap
     this._drawText("SALE ORDER NO. :", leftX, leftY, labelSize, true);
-    this._drawText(this.data.order_no, valueX, leftY, valueSize);
+    this._drawText(this.data.order_number, valueX, leftY, valueSize);
 
     leftY -= lineGap
     this._drawText("CONTRACT NO. :", leftX, leftY, labelSize, true);
@@ -180,7 +180,7 @@ class InvoiceAccGenerator {
    
     leftY -= lineGap;
     this._drawText("TERM OF PAYMENT :", leftX, leftY, labelSize, true);
-    this._drawText(this.data.payment_terms, valueX, leftY, valueSize);
+    this._drawText(this.data.payment_term, valueX, leftY, valueSize);
 
     leftY -= lineGap;
     this._drawText("SHIPMENT BY :", leftX, leftY, labelSize, true);
@@ -297,8 +297,8 @@ class InvoiceAccGenerator {
   
       this._drawText(item.invoice_description || "", 40, currentY - 15, fontSize);
 
-      this._drawText(item.bag_qty +" x "+item.pallet_qty+" KGS = "+item.qty_mt + " MT" || "0.00", 320, currentY - 15, fontSize);
-      this._drawText(Number(item.unit_price_usd_mt).toLocaleString('en-US', {
+      this._drawText((item.bag_qty?item.bag_qty:" ") +" x "+(item.pallet_qty?item.pallet_qty:"")+" KGS = "+(item.qty_mt?item.qty_mt:" ") + " MT" || "0.00", 320, currentY - 15, fontSize);
+      this._drawText(Number(item.unit_price).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       }) || "0.00", 450, currentY - 15, fontSize);
@@ -582,9 +582,10 @@ class InvoiceAccGenerator {
     }
 
     let count_batch = 0;
-    for (const item of this.data.line_items) {
-      count_batch += item.batch.length 
-    
+      if(this.data.line_items[0].batch){
+        for (const item of this.data.line_items) {
+        count_batch += item.batch.length 
+      }
     }
 
     if(count_batch > 0){
@@ -608,30 +609,30 @@ class InvoiceAccGenerator {
     } else {
       y -=15;
     }
-    
 
+    
     this._drawText("TOTAL NET WEIGHT :", 40, y, fontSize);
 
-    let text = this.data.net_weight_kg + " KGS.";
+    let text = (this.data.net_weight_kg?this.data.net_weight_kg:"")+ " KGS.";
     let textWidth = this.font.widthOfTextAtSize(text, fontSize);
     let x = 200 - textWidth ;
-    this._drawText(this.data.net_weight_kg + " KGS.", x, y, fontSize);
+    this._drawText((this.data.net_weight_kg?this.data.net_weight_kg:"") + " KGS.", x, y, fontSize);
 
     y -=15;
     this._drawText("TOTAL TARE WEIGHT :", 40, y, fontSize);
 
-    text = this.data.tare_weight_kg + " KGS.";
+    text = (this.data.tare_weight_kg?this.data.tare_weight_kg:" ") + " KGS.";
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
     x = 200 - textWidth ;
-    this._drawText(this.data.tare_weight_kg + " KGS.", x, y, fontSize);
+    this._drawText((this.data.tare_weight_kg?this.data.tare_weight_kg:" ") + " KGS.", x, y, fontSize);
     
     y -=15;
     this._drawText("TOTAL GROSS WEIGHT :", 40, y, fontSize);
     
-    text = this.data.gross_weight_kg + " KGS.";
+    text = (this.data.gross_weight_kg?this.data.gross_weight_kg:" ") + " KGS.";
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
     x = 200 - textWidth ;
-    this._drawText(this.data.gross_weight_kg + " KGS.", x, y, fontSize);
+    this._drawText(text, x, y, fontSize);
     
     y -=15;
     this._drawText("COUNTRY OF ORIGIN : THAILAND", 40, y, fontSize);

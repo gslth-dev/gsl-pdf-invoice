@@ -12,7 +12,7 @@ let y_end ;
 class PIGenerator {
   static HEADER_IMAGE = path.resolve(
     __dirname,
-    '../public/GSL_header_vector.png'
+    './images/GSL_header_vector.png'
   );
 
   constructor(data) {
@@ -26,13 +26,13 @@ class PIGenerator {
     this.page = this.pdfDoc.addPage([595.28, 841.89]);
 
     const fontBytes = fs.readFileSync(
-      path.resolve(__dirname, '../fonts/THSarabunNew.ttf')
+      path.resolve(__dirname, './fonts/THSarabunNew.ttf')
     );
 
     this.font = await this.pdfDoc.embedFont(fontBytes);
 
     const boldBytes = fs.readFileSync(
-      path.resolve(__dirname, '../fonts/THSarabunNew Bold.ttf')
+      path.resolve(__dirname, './fonts/THSarabunNew Bold.ttf')
     );
 
     this.bold = await this.pdfDoc.embedFont(boldBytes);
@@ -53,13 +53,13 @@ class PIGenerator {
     this.page = this.pdfDoc.addPage([595.28, 841.89]);
 
     const fontBytes = fs.readFileSync(
-      path.resolve(__dirname, '../fonts/THSarabunNew.ttf')
+      path.resolve(__dirname, './fonts/THSarabunNew.ttf')
     );
 
     this.font = await this.pdfDoc.embedFont(fontBytes);
 
     const boldBytes = fs.readFileSync(
-      path.resolve(__dirname, '../fonts/THSarabunNew Bold.ttf')
+      path.resolve(__dirname, './fonts/THSarabunNew Bold.ttf')
     );
 
     this.bold = await this.pdfDoc.embedFont(boldBytes);
@@ -135,7 +135,7 @@ class PIGenerator {
   }
 
   _drawTitle() {
-    const text = this.data.invoice_type == "proforma_invoice" ? "PROFORMA INVOICE" : this.data.invoice_type == "order_confirmation" ?"ORDER CONFIRMATION" :"undifine_type";
+    const text = this.data.invoice_type == "proforma_invoice" ? "PROFORMA INVOICE" : this.data.invoice_type == "order_confirmation" ?"ORDER CONFIRMATION" :"is not PI or OC";
 
     const textWidth = this.font.widthOfTextAtSize(text, 20);
 
@@ -215,7 +215,7 @@ class PIGenerator {
     this._drawText(": " +date_formattedDateUTC, rightValueX, startrightY - (lineGap * 1), valueSize);
 
     this._drawText("PO NO.", rightLabelX, startrightY - (lineGap * 2), labelSize, true);
-    this._drawText(": " +this.data.customer_po_no, rightValueX, startrightY - (lineGap * 2), valueSize);
+    this._drawText(": " +this.data.po_number, rightValueX, startrightY - (lineGap * 2), valueSize);
 
 
 
@@ -283,7 +283,7 @@ class PIGenerator {
     this._drawText(": " +due_date_formattedDateUTC, rightValueX, startY - (lineGap * 1), valueSize);
 
     this._drawText("PO NO.", rightLabelX, startY - (lineGap * 2), labelSize, true);
-    this._drawText(": " +this.data.customer_po_no, rightValueX, startY - (lineGap * 2), valueSize);
+    this._drawText(": " +this.data.po_number, rightValueX, startY - (lineGap * 2), valueSize);
 
 
 
@@ -337,10 +337,10 @@ class PIGenerator {
       total_bag_qty +=item.bag_qty;
 
       this._drawText(index, 45, currentY - 15, fontSize);
-      this._drawText(item.description + " " + item.product_name|| "", 70, currentY - 15, fontSize);
+      this._drawText((item.description?item.description:"") + " " + (item.product_name?item.product_name:"")|| "", 70, currentY - 15, fontSize);
 
-      this._drawText(item.bag_qty +" x "+item.pallet_qty+" KGS = "+item.qty_mt + " MT" || "0.00", 320, currentY - 15, fontSize);
-      this._drawText(item.unit_price_usd_mt || "0.00", 450, currentY - 15, fontSize);
+      this._drawText((item.bag_qty?item.bag_qty:"") +" x "+(item.pallet_qty?item.pallet_qty:"")+" KGS = "+(item.qty_mt ?item.qty_mt :"")+ " MT" || "0.00", 320, currentY - 15, fontSize);
+      this._drawText(item.unit_price || "0.00", 450, currentY - 15, fontSize);
 
       const amountText =  Number(item.line_amount).toLocaleString('en-US', {
         minimumFractionDigits: 2,
@@ -474,7 +474,7 @@ class PIGenerator {
     y -=15;
 
     this._drawText("TERM OF PAYMENT :", 40, y, fontSize);
-    this._drawText(": "+ this.data.payment_terms, 140, y, fontSize);
+    this._drawText(": "+ this.data.payment_term, 140, y, fontSize);
 
 
     if(this.data.last_of_ship_ment != "" && this.data.last_of_ship_ment != null) {
@@ -553,7 +553,7 @@ class PIGenerator {
     y -=15;
 
     this._drawText("TERM OF PAYMENT :", 40, y, fontSize);
-    this._drawText(": "+ this.data.payment_terms, 140, y, fontSize);
+    this._drawText(": "+ this.data.payment_term, 140, y, fontSize);
 
     y -=15;
     this._drawText("LASTEST OF SHIPMENT", 40, y, fontSize);

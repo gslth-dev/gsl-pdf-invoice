@@ -12,7 +12,7 @@ let y_end ;
 class PackingListGenerator {
   static HEADER_IMAGE = path.resolve(
     __dirname,
-    '../public/GSL_header_vector.png'
+    './images/GSL_header_vector.png'
   );
 
   constructor(data) {
@@ -26,13 +26,13 @@ class PackingListGenerator {
     this.page = this.pdfDoc.addPage([595.28, 841.89]);
 
     const fontBytes = fs.readFileSync(
-      path.resolve(__dirname, '../fonts/THSarabunNew.ttf')
+      path.resolve(__dirname, './fonts/THSarabunNew.ttf')
     );
 
     this.font = await this.pdfDoc.embedFont(fontBytes);
 
     const boldBytes = fs.readFileSync(
-      path.resolve(__dirname, '../fonts/THSarabunNew Bold.ttf')
+      path.resolve(__dirname, './fonts/THSarabunNew Bold.ttf')
     );
 
     this.bold = await this.pdfDoc.embedFont(boldBytes);
@@ -201,18 +201,18 @@ class PackingListGenerator {
     this._drawText("INVOICE NO. :  ", rightLabelX, startYright, labelSize, true);
     this._drawText(this.data.invoice_no, rightValueX, startYright , valueSize);
 
-    if(this.data.consignee1 != null && this.data.consignee1 !="") {
+    if(this.data.consignee != null && this.data.consignee !="") {
       startYright -=15
       this._drawText("CONSIGNEE :  ", rightLabelX, startYright, labelSize, true);
 
-      const consignee1 = this._splitText(
-          this.data.consignee1,
+      const consignee = this._splitText(
+          this.data.consignee,
           150,       
           this.font,
           valueSize
       );
 
-      consignee1.forEach((line, index) => {
+      consignee.forEach((line, index) => {
         if(index > 0) {
           startYright -= 15;
           this._drawText(
@@ -354,8 +354,15 @@ class PackingListGenerator {
 
     y -=15;
     this._drawText("QUANTITY : ", leftX, y , fontSize, true);
+
+     this._drawText(
+          (this.data.quantity?this.data.quantity:" "),
+          valueX,
+          y,
+          fontSize
+        );
     
-    const quantity = this._splitText(
+   /* const quantity = this._splitText(
         this.data.quantity,
         350,       
         this.font,
@@ -380,7 +387,7 @@ class PackingListGenerator {
         );
       }
       
-    });
+    });*/
 
     y -=15;
     this._drawText("VESSEL'S NAME : ", leftX, y , fontSize, true);
@@ -440,7 +447,7 @@ class PackingListGenerator {
 
     y -=15;
     this._drawText("GROSS WEIGHT OF EACH CONTAINER : ", leftX, y , fontSize, true);
-    this._drawText( Number(this.data.gross_weight_of_each_container).toLocaleString('en-US', {
+    this._drawText( Number(this.data.gross_weight_per_container).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       }) +" KGS." , valueX, y , fontSize);
