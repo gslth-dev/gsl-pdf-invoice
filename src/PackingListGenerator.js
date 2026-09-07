@@ -189,7 +189,7 @@ class PackingListGenerator {
     
     startY -= 15;
     this._drawText("SHIPPED TO :", leftX, startY, labelSize, true);
-    this._drawText(this.data.ship_to, valueX-25, startY, valueSize);
+    this._drawText(this.data.shipping_address, valueX-25, startY, valueSize);
 
     startY -= 15;
     this._drawText("CONTRACT NO. : ", leftX, startY, labelSize, true);

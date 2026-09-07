@@ -46,33 +46,7 @@ class PIGenerator {
     return await this.pdfDoc.save();
   }
 
-  async generatePI2() {
-    this.pdfDoc = await PDFDocument.create();
-
-    this.pdfDoc.registerFontkit(fontkit);
-    this.page = this.pdfDoc.addPage([595.28, 841.89]);
-
-    const fontBytes = fs.readFileSync(
-      path.resolve(__dirname, './fonts/THSarabunNew.ttf')
-    );
-
-    this.font = await this.pdfDoc.embedFont(fontBytes);
-
-    const boldBytes = fs.readFileSync(
-      path.resolve(__dirname, './fonts/THSarabunNew Bold.ttf')
-    );
-
-    this.bold = await this.pdfDoc.embedFont(boldBytes);
-
-    await this._drawHeader();
-    this._drawTitle();
-    this._drawCustomerInfo2();
-    this._drawTable();
-    this._drawFooterPI2();
-
-    return await this.pdfDoc.save();
-  }
-
+ 
   async _generate(outputPath = this.data.invoice_type+".pdf") {
     this.pdfDoc = await PDFDocument.create();
 
@@ -194,7 +168,7 @@ class PIGenerator {
     }
     startY -= 15;
     this._drawText("SHIPPED TO :", leftX, startY, labelSize, true);
-    this._drawText(this.data.ship_to, valueX-25, startY, valueSize);
+    this._drawText(this.data.shipping_address, valueX-25, startY, valueSize);
 
 
     this._drawText("PI NO.  ", rightLabelX, startrightY, labelSize, true);
@@ -223,73 +197,6 @@ class PIGenerator {
     y_end = startY-40
   }
 
-  _drawCustomerInfo2() {
-    const labelSize = 12;
-    const valueSize = 12;
-
-    const leftX = 40;
-    const valueX = 120;
-
-    const rightLabelX = 400;
-    const rightValueX = 450;    
-
-    const startY = 690;
-    const lineGap = 15; 
-    let telY = 15; 
-  
-    this._drawText("SOLD TO : ", leftX, startY, labelSize, true);
-    this._drawText(this.data.bill_to_name, valueX-30, startY, valueSize);
-
-    const billToY = startY;
-    const billToLines = this._splitText(
-        " " + this.data.bill_to_address,
-        220,       
-        this.font,
-        valueSize
-    );
-
-    billToLines.forEach((line, index) => {
-      this._drawText(
-          line,
-          valueX-30,
-          billToY - (lineGap * (index+1)),
-          valueSize
-      );
-      telY = billToY - (lineGap * (index+1))-15;
-    });
-
-    this._drawText(
-          "TEL: +886-4-22911877  FAX: +886-4-2291188",
-          valueX-30,
-          telY,
-          valueSize
-      );
-
-    this._drawText("PI NO.  ", rightLabelX, startY, labelSize, true);
-    this._drawText(": " +this.data.contract_pi_no, rightValueX, startY , valueSize);
-
-    // this._drawText("DATE :", rightLabelX+100, startY - (lineGap * 0.5), labelSize, true);
-    // this._drawText(invoice_date_formattedDateUTC, rightLabelX+135, startY - (lineGap * 0.5), valueSize);
-
-    this._drawText("DATE ", rightLabelX, startY - (lineGap * 1), labelSize, true);
-    const due_date_obj = new Date(this.data.due_date);
-
-    const due_date_formattedDateUTC = due_date_obj.toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-      timeZone: 'UTC' // Forces UTC interpretation
-    }).toUpperCase();
-    this._drawText(": " +due_date_formattedDateUTC, rightValueX, startY - (lineGap * 1), valueSize);
-
-    this._drawText("PO NO.", rightLabelX, startY - (lineGap * 2), labelSize, true);
-    this._drawText(": " +this.data.po_number, rightValueX, startY - (lineGap * 2), valueSize);
-
-
-
-    this._drawText("SHIPPED TO :", leftX, startY - (lineGap * 4), labelSize, true);
-    this._drawText(this.data.ship_to, valueX-30, startY - (lineGap * 4), valueSize);
-  }
 
   _drawTable() {
     let y = y_end;
@@ -342,7 +249,7 @@ class PIGenerator {
       this._drawText((item.bag_qty?item.bag_qty:"") +" x "+(item.pallet_qty?item.pallet_qty:"")+" KGS = "+(item.qty_mt ?item.qty_mt :"")+ " MT" || "0.00", 320, currentY - 15, fontSize);
       this._drawText(item.unit_price || "0.00", 450, currentY - 15, fontSize);
 
-      const amountText =  Number(item.line_amount).toLocaleString('en-US', {
+      const amountText =  Number(item.total_amount).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       })|| "";

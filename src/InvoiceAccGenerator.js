@@ -205,7 +205,7 @@ class InvoiceAccGenerator {
 
     rightY -= (lineGap * 3)
     this._drawText("SHIP TO :", rightLabelX, rightY, labelSize, true);
-    this._drawText(this.data.ship_to, rightValueX, rightY, valueSize);
+    this._drawText(this.data.shipping_address, rightValueX, rightY, valueSize);
 
 
 
@@ -303,7 +303,7 @@ class InvoiceAccGenerator {
         maximumFractionDigits: 2
       }) || "0.00", 450, currentY - 15, fontSize);
 
-      const amountText = Number(item.line_amount).toLocaleString('en-US', {
+      const amountText = Number(item.total_amount).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
