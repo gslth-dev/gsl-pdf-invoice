@@ -18,7 +18,7 @@ const data = {
   order_id: '22cab5fe-834b-41db-8f48-a2bfa9e493f1',
   invoice_number: 'INV202609071360',
   invoice_date: '2026-09-06T17:00:00.000Z',
-  invoice_type: 'invoice',
+  invoice_type: 'customs_invoice',
   status: 'draft',
   revision: 1,
   customer_name: 'Xiamen Port Commerce',
@@ -269,6 +269,8 @@ app.get('/invoiceCus', async (req, res) => {
   
   const pdf = new InvoiceGenerator(data);
 
+  // console.log()
+
   const pdfBytes = await pdf.generateInvoice();
 
   res.setHeader('Content-Type', 'application/pdf');
@@ -295,7 +297,7 @@ app.get('/packing', async (req, res) => {
   res.send(Buffer.from(pdfBytes));
 });
 
-app.get('/pi1', async (req, res) => {
+app.get('/pi', async (req, res) => {
   const pdf = new PIGenerator(data);
 
   const pdfBytes = await pdf.generatePI1();
@@ -314,8 +316,8 @@ app.get('/pi1', async (req, res) => {
 // เริ่มทำงานเซิร์ฟเวอร์
 app.listen(PORT, () => {
     console.log(`🚀 เซิร์ฟเวอร์รันเรียบร้อยแล้วที่ http://localhost:${PORT}`);
-    console.log(`🔗 เรียกดู PI or OC ได้ที่: http://localhost:${PORT}/pi1`);
-    console.log(`🔗 เรียกดู Packing List ได้ที่: http://localhost:${PORT}/packing`);
-    console.log(`🔗 เรียกดู invoive Acc ได้ที่: http://localhost:${PORT}/invoiceAcc`);
-    console.log(`🔗 เรียกดู invoive Customer ได้ที่: http://localhost:${PORT}/invoiceCus`);
+    // console.log(`🔗 เรียกดู PI or OC ได้ที่: http://localhost:${PORT}/pi1`);
+    // console.log(`🔗 เรียกดู Packing List ได้ที่: http://localhost:${PORT}/packing`);
+    console.log(`🔗 เรียกดู invoive  ได้ที่: http://localhost:${PORT}/invoice`);
+    // console.log(`🔗 เรียกดู invoive Customer ได้ที่: http://localhost:${PORT}/invoiceCus`);
 });

@@ -40,10 +40,29 @@ class InvoiceGenerator {
     this.bold = await this.pdfDoc.embedFont(boldBytes);
 
     await this._drawHeader();
-    this._drawTitle();
-    this._drawCustomerInfo();
-    this._drawTable();
-    this._drawFooter();
+
+    if(this.data.invoice_type == "performa_invoice" || this.data.invoice_type == "order_confirmation") {
+      this._drawTitlePI();
+      this._drawCustomerInfoPI();
+      this._drawTablePI();
+      this._drawFooterPI();
+    } else if (this.data.invoice_type == "account_invoice") {
+      this._drawTitle();
+      this._drawCustomerInfoAcc();
+      this._drawTableAcc();
+      this._drawFooterAcc();
+    } else if (this.data.invoice_type == "packing_list") {
+      this._drawTitlePack();
+      this._drawCustomerInfoPack();
+      this._drawTablePack();
+      this._drawFooterPack();
+    } else if (this.data.invoice_type == "customs_invoice" || this.data.invoice_type == "customer_invoice") {
+      this._drawTitle();
+      this._drawCustomerInfo();
+      this._drawTable();
+      this._drawFooter();
+    }
+    
 
     return await this.pdfDoc.save();
   }
@@ -646,6 +665,1242 @@ class InvoiceGenerator {
       this._drawText("FOR DELIVERY TO : " +this.data.for_delivery_to, 40, y, fontSize);
     }
     
+  }
+
+  async _drawHeaderPI() {
+    const headerBytes = fs.readFileSync(PIGenerator.HEADER_IMAGE);
+    const headerImage = await this.pdfDoc.embedPng(headerBytes);
+
+    const headerDims = headerImage.scale(0.25);
+
+    this.page.drawImage(headerImage, {
+        x: 40,
+        y: 758,
+        width: 515,
+        height: 65
+    });
+
+  }
+    
+  _drawTitlePI() {
+    const text = this.data.invoice_type == "performa_invoice" ? "PROFORMA INVOICE" : this.data.invoice_type == "order_confirmation" ?"ORDER CONFIRMATION" :"is not PI or OC";
+
+    const textWidth = this.font.widthOfTextAtSize(text, 20);
+
+    const pageWidth = this.page.getWidth();
+
+    const x = (pageWidth - textWidth) / 2;
+
+    this._drawText(
+      text,
+      x,
+      710,
+      20,
+      true
+    );
+  }
+
+  _drawCustomerInfoPI() {
+    const labelSize = 12;
+    const valueSize = 12;
+
+    const leftX = 40;
+    const valueX = 120;
+
+    const rightLabelX = 400;
+    const rightValueX = 450;    
+
+    let startY = 690;
+    const startrightY = 690;
+    const lineGap = 15; 
+  
+    this._drawText("SOLD TO : ", leftX, startY, labelSize, true);
+    this._drawText(this.data.customer, valueX-30, startY, valueSize);
+
+    startY -= 15;
+    this._drawText(this.data.address1, valueX-30, startY, valueSize);
+
+    if(this.data.address2){
+      startY -= 15;
+      this._drawText(this.data.address2, valueX-30, startY, valueSize);
+    }
+    if(this.data.address3){
+      startY -= 15;
+      this._drawText(this.data.address3, valueX-30, startY, valueSize);
+    }
+    if(this.data.address4){
+      startY -= 15;
+      this._drawText(this.data.address4, valueX-30, startY, valueSize);
+    }
+    if(this.data.address5){
+      startY -= 15;
+      this._drawText(this.data.address5, valueX-30, startY, valueSize);
+    }
+    if(this.data.address6){
+      startY -= 15;
+      this._drawText(this.data.address6, valueX-30, startY, valueSize);
+    }
+    startY -= 15;
+    this._drawText("SHIPPED TO :", leftX, startY, labelSize, true);
+    this._drawText(this.data.shipping_address, valueX-25, startY, valueSize);
+
+
+    this._drawText("PI NO.  ", rightLabelX, startrightY, labelSize, true);
+    this._drawText(": " +this.data.contract_pi_no, rightValueX, startrightY , valueSize);
+
+    // this._drawText("DATE :", rightLabelX+100, startY - (lineGap * 0.5), labelSize, true);
+    // this._drawText(invoice_date_formattedDateUTC, rightLabelX+135, startY - (lineGap * 0.5), valueSize);
+
+    this._drawText("DATE ", rightLabelX, startrightY - (lineGap * 1), labelSize, true);
+    const date_obj = new Date();
+
+    const date_formattedDateUTC = date_obj.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC' // Forces UTC interpretation
+    }).toUpperCase();
+    this._drawText(": " +date_formattedDateUTC, rightValueX, startrightY - (lineGap * 1), valueSize);
+
+    this._drawText("PO NO.", rightLabelX, startrightY - (lineGap * 2), labelSize, true);
+    this._drawText(": " +this.data.po_number, rightValueX, startrightY - (lineGap * 2), valueSize);
+
+
+
+    
+    y_end = startY-40
+  }
+
+
+  _drawTablePI() {
+    let y = y_end;
+    const fontSize = 12;
+    const quantityX = 340;
+
+    this.page.drawLine({
+      start: { x: 40, y: y + 30 },
+      end: { x: 555, y: y + 30 },
+      thickness: 1,
+    });
+
+    this._drawText("ITEM", 40, y + 15, fontSize, true);
+    this._drawText("DESCRIPTION", 70, y + 15, fontSize, true);
+    this._drawText("QUANTITY", 340, y + 15, fontSize, true);
+    this._drawText("UNIT PRICE", 430, y + 15, fontSize, true);
+    this._drawText("(USD PER MT)", 430, y+5 , fontSize, true);
+
+    let text = "TOTAL AMOUNT";
+    let textWidth = this.font.widthOfTextAtSize(text, fontSize);
+    let x = this.page.getWidth() - textWidth - 45;
+
+    this._drawText("TOTAL AMOUNT", x, y + 15, fontSize, true);
+
+    text = "USD";
+    textWidth = this.font.widthOfTextAtSize(text, fontSize);
+    x = this.page.getWidth() - textWidth - 50;
+
+    this._drawText("(USD)", x, y +5, fontSize, true);
+
+    this.page.drawLine({
+      start: { x: 40, y },
+      end: { x: 555, y },
+      thickness: 1,
+    });
+
+    let currentY = y; 
+    const rowHeight = 15; // ความสูงของแต่ละแถว
+    let total_bag_qty = 0;
+    let total_pallet_qty = 0;
+    let index = 0;
+    for (const item of this.data.line_items) {
+      index++;
+      total_pallet_qty +=item.pallet_qty;
+      total_bag_qty +=item.bag_qty;
+
+      this._drawText(index, 45, currentY - 15, fontSize);
+      this._drawText((item.description?item.description:"") + " " + (item.product_name?item.product_name:"")|| "", 70, currentY - 15, fontSize);
+
+      this._drawText((item.bag_qty?item.bag_qty:"") +" x "+(item.pallet_qty?item.pallet_qty:"")+" KGS = "+(item.qty_mt ?item.qty_mt :"")+ " MT" || "0.00", 320, currentY - 15, fontSize);
+      this._drawText(item.unit_price || "0.00", 450, currentY - 15, fontSize);
+
+      const amountText =  Number(item.total_amount).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      })|| "";
+      let textWidth = 0;
+      let amountX = this.page.getWidth() - 40; // ค่า default ถ้าไม่มีข้อความ
+
+      if (amountText) {
+        textWidth = this.font.widthOfTextAtSize(amountText, fontSize);
+        amountX = this.page.getWidth() - textWidth - 40;
+      }
+      
+      // วาด Line Amount
+      this._drawText(amountText, amountX, currentY - 15, fontSize);
+
+      this.page.drawLine({
+        start: { x: 500, y: currentY - 20 },
+        end: { x: 555, y: currentY - 20 },
+        thickness: 1,
+      });
+
+      // ลดพิกัด Y ลงไปสำหรับรายการถัดไป
+      currentY -= rowHeight;
+      y = currentY
+
+    }
+
+    y = y+15
+
+    const totalText = 'TOTAL ' + this.data.delivery_terms;
+    textWidth = 0;
+    let amountX = this.page.getWidth() - 100; // ค่า default ถ้าไม่มีข้อความ
+
+    if (totalText) {
+      textWidth = this.font.widthOfTextAtSize(totalText, fontSize);
+      amountX = this.page.getWidth() - textWidth - 100;
+    }
+    
+    // วาด Line Amount
+    this._drawText(totalText, amountX, currentY - 15, fontSize);
+
+    // this._drawText(totalText, 300, y - 30, fontSize);
+
+    text = Number(this.data.total_invoice_amount).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
+    textWidth = this.font.widthOfTextAtSize(text, fontSize);
+    x = this.page.getWidth() - textWidth - 40;
+
+    this._drawText(text, x, y - 30, fontSize);
+
+    const thickness = 1;      
+    const gap = 2;              
+    const offsetFromText = 4;   
+
+    this.page.drawLine({
+        start: { x: 500, y: y-30 - offsetFromText },
+        end: { x: 555, y: y-30 - offsetFromText },
+        thickness: thickness,
+        color:  rgb(0, 0, 0),
+    });
+
+    this.page.drawLine({
+        start: { x: 500, y: y -30- offsetFromText - gap - thickness },
+        end: { x: 555, y: y -30- offsetFromText - gap - thickness },
+        thickness: thickness,
+        color: rgb(0, 0, 0),
+    });
+
+    text = "(TOTAL US DOLLARS " + this._numberToWords(this.data.total_invoice_amount) + " )" ;
+
+    textWidth = this.font.widthOfTextAtSize(text, fontSize);
+
+    let pageWidth = this.page.getWidth();
+
+    x = (pageWidth - textWidth) / 2;
+
+
+    this._drawText(text, x, y-50, fontSize);
+
+    this.page.drawLine({
+      start: { x: 40, y: y -55 },
+      end: { x: 555, y: y -55 },
+      thickness: 1,
+    });
+
+    y_end = y-60;
+  }
+
+  _drawFooterPI() {
+    let y = y_end;
+    const fontSize = 12;
+
+    
+    y -=15;
+    this._drawText("PACKING ", 40, y, fontSize);
+    this._drawText(": " + this.data.packing_remark , 80, y, fontSize);
+    if(this.data.packing_remark2 != null && this.data.packing_remark2 != "") {
+      y -=15;
+      this._drawText(this.data.packing_remark2 , 80, y, fontSize);
+    }
+    if(this.data.packing_remark3 != null && this.data.packing_remark3 != "") {
+      y -=15;
+      this._drawText(this.data.packing_remark3 , 80, y, fontSize);
+    }
+    if(this.data.packing_remark4 != null && this.data.packing_remark4 != "") {
+      y -=15;
+      this._drawText(this.data.packing_remark4 , 80, y, fontSize);
+    }
+    if(this.data.packing_remark5 != null && this.data.packing_remark5 != "") {
+      y -=15;
+      this._drawText(this.data.packing_remark5 , 80, y, fontSize);
+    }
+    
+    y -=15;
+    if(this.data.delivery_terms == "VISAKHAPATNAM (VIZAG SEAPORT), INDIA" || this.data.delivery_terms == "SURABAYA, INDONESIA" || this.data.delivery_terms == "TAIWAN" || this.data.delivery_terms == "HO CHI MINH, VIETNAM" || this.data.delivery_terms == "NHAVA SHEVA, INDIA" || this.data.delivery_terms == "CHENNAI PORT, INDIA" || this.data.delivery_terms == "YANGZHOU / BEIHAI, CHINA") {
+      this._drawText("DELIVERY", 40, y, fontSize);
+
+      this._drawText(": BY SEA FROM ANY THAILAND PORTS TO " + this.data.delivery_terms, 140, y, fontSize);
+      y -=15;
+    } 
+    
+
+    this._drawText("SHIPMENT", 40, y, fontSize);
+    this._drawText(": " + this.data.shipment, 140, y, fontSize);
+    y -=15;
+
+    this._drawText("TERM OF PAYMENT :", 40, y, fontSize);
+    this._drawText(": "+ this.data.payment_term, 140, y, fontSize);
+
+
+    if(this.data.last_of_ship_ment != "" && this.data.last_of_ship_ment != null) {
+      y -=15;
+      this._drawText("LASTEST OF SHIPMENT", 40, y, fontSize);
+      this._drawText(": "+ this.data.last_of_ship_ment, 140, y, fontSize);
+    }
+
+    
+    if(this.data.expiry_date_of_lc != "" && this.data.expiry_date_of_lc != null) {
+      y -=15;
+      this._drawText("EXPIRY DATE OF L/C", 40, y, fontSize);
+      this._drawText(": "+ this.data.expiry_date_of_lc, 140, y, fontSize);
+    }
+
+    if(this.data.tolerace != "" && this.data.tolerace != null) {
+      y -=15;
+      this._drawText("TOLERANCE", 40, y, fontSize);
+      this._drawText(": "+ this.data.tolerace, 140, y, fontSize);
+    }
+    y -=15;
+
+    this._drawText("BANK NAME ", 40, y, fontSize);
+    this._drawText(": "+ this.data.bank_name, 140, y, fontSize);
+
+    y -=15;
+
+    this._drawText("BANK ADDRESS ", 40, y, fontSize);
+    this._drawText(": "+ this.data.bank_address, 140, y, fontSize);
+
+    y -=15;
+
+    this._drawText("ACCOUNT NAME ", 40, y, fontSize);
+    this._drawText(": "+ this.data.account_name, 140, y, fontSize);
+
+    y -=15;
+
+    this._drawText("ACCOUNT NO ", 40, y, fontSize);
+    this._drawText(": "+ this.data.account_number, 140, y, fontSize);
+
+    y -=15;
+
+    this._drawText("S.W.I.F.T ", 40, y, fontSize);
+    this._drawText(": "+ (this.data.s_w_i_f_t?this.data.s_w_i_f_t:""), 140, y, fontSize);
+
+
+    y -=50;
+
+    this.page.drawLine({
+      start: { x: 400, y: y  },
+      end: { x: 520, y: y},
+      thickness: 1,
+    });
+    y -=15;
+      this._drawText("AUTHORIZED SIGNATURE", 415, y, fontSize);
+  }
+
+  _drawCustomerInfoAcc() {
+    const labelSize = 12;
+    const valueSize = 12;
+
+    const leftX = 40;
+    const valueX = 120;
+
+    const rightLabelX = 340;
+    const rightValueX = 390;    
+
+    const startY = 670;
+    const lineGap = 15; 
+  
+    let leftY = startY;
+    this._drawText("INVOICE NO. :", leftX, leftY, labelSize, true);
+    this._drawText(this.data.invoice_number, valueX, leftY, valueSize);
+
+    leftY -= lineGap
+    this._drawText("SALE ORDER NO. :", leftX, leftY, labelSize, true);
+    this._drawText(this.data.order_number, valueX, leftY, valueSize);
+
+    leftY -= lineGap
+    this._drawText("CONTRACT NO. :", leftX, leftY, labelSize, true);
+    this._drawText(this.data.contract_pi_no, valueX, leftY, valueSize);
+
+    leftY -= lineGap
+    this._drawText("BILL TO :", leftX, leftY, labelSize, true);
+    
+    
+      this._drawText(this.data.address1, valueX-30, leftY, valueSize);
+
+    if(this.data.address2){
+      leftY -= lineGap;
+      this._drawText(this.data.address2, valueX-30, leftY, valueSize);
+    }
+    if(this.data.address3){
+      leftY -= lineGap;
+      this._drawText(this.data.address3, valueX-30, leftY, valueSize);
+    }
+    if(this.data.address4){
+      leftY -= lineGap;
+      this._drawText(this.data.address4, valueX-30, leftY, valueSize);
+    }
+    if(this.data.address5){
+      leftY -= lineGap;
+      this._drawText(this.data.address5, valueX-30, leftY, valueSize);
+    }
+    if(this.data.address6){
+      leftY -= lineGap;
+      this._drawText(this.data.address6, valueX-30, leftY, valueSize);
+    }
+
+    
+    leftY -= lineGap;
+    this._drawText("TERM OF PAYMENT :", leftX, leftY, labelSize, true);
+    this._drawText(this.data.payment_term, valueX, leftY, valueSize);
+
+    leftY -= lineGap;
+    this._drawText("SHIPMENT BY :", leftX, leftY, labelSize, true);
+    this._drawText(this.data.vessel, valueX, leftY, valueSize);
+
+    leftY -= lineGap;
+    this._drawText("FROM :", leftX, leftY, labelSize, true);
+    this._drawText(this.data.loading_port, valueX, leftY, valueSize);
+
+
+    let rightY = startY
+    const dateObject = new Date();
+
+    const date_formattedDateUTC = dateObject.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC' // Forces UTC interpretation
+    }).toUpperCase();
+    this._drawText("DATE :", rightLabelX+100, rightY, labelSize, true);
+    this._drawText(date_formattedDateUTC, rightLabelX+135, rightY, valueSize);
+
+    rightY -= (lineGap * 3)
+    this._drawText("SHIP TO :", rightLabelX, rightY, labelSize, true);
+    this._drawText(this.data.shipping_address, rightValueX, rightY, valueSize);
+
+
+
+    rightY = leftY + (lineGap * 2)
+    if(this.data.invoice_due_date != "" && this.data.invoice_due_date != null) {
+      const due_date_obj = new Date(this.data.invoice_due_date);
+
+      const due_date_formattedDateUTC = due_date_obj.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'UTC' // Forces UTC interpretation
+      }).toUpperCase();
+
+      this._drawText("DUE DATE :", rightLabelX, rightY, labelSize, true);
+      this._drawText(due_date_formattedDateUTC, rightValueX, rightY, valueSize);
+    }
+    
+
+
+    rightY -= lineGap 
+    const date_etd = new Date(this.data.etd);
+
+    const etd_formattedDate = date_etd.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC' // Forces UTC interpretation
+    }).toUpperCase();
+
+    this._drawText("ETD :", rightLabelX, rightY, labelSize, true);
+    this._drawText(etd_formattedDate, rightValueX, rightY, valueSize);
+
+
+    rightY -= lineGap 
+    const date_eta = new Date(this.data.eta);
+
+    const eta_formattedDate = date_eta.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC' // Forces UTC interpretation
+    }).toUpperCase();
+
+    this._drawText("ETA :", rightLabelX, rightY, labelSize, true);
+    this._drawText(eta_formattedDate, rightValueX, rightY, valueSize);
+
+    y_end = rightY
+  }
+  
+  _drawTableAcc() {
+    let y = y_end-45;
+    const fontSize = 12;
+    const quantityX = 340;
+
+    this.page.drawLine({
+      start: { x: 40, y: y + 30 },
+      end: { x: 555, y: y + 30 },
+      thickness: 1,
+    });
+
+    this._drawText("DESCRIPTION", 50, y + 15, fontSize, true);
+    this._drawText("QUANTITY", 340, y + 15, fontSize, true);
+    this._drawText("UNIT PRICE", 430, y + 15, fontSize, true);
+    this._drawText("(USD PER MT)", 430, y+5 , fontSize, true);
+
+    let text = "AMOUNT";
+    let textWidth = this.font.widthOfTextAtSize(text, fontSize);
+    let x = this.page.getWidth() - textWidth - 45;
+
+    this._drawText("AMOUNT", x, y + 15, fontSize, true);
+
+    text = "USD";
+    textWidth = this.font.widthOfTextAtSize(text, fontSize);
+    x = this.page.getWidth() - textWidth - 50;
+
+    this._drawText("(USD)", x, y +5, fontSize, true);
+
+    this.page.drawLine({
+      start: { x: 40, y },
+      end: { x: 555, y },
+      thickness: 1,
+    });
+
+    let currentY = y; 
+    const rowHeight = 15; // ความสูงของแต่ละแถว
+
+    for (const item of this.data.line_items) {
+  
+      this._drawText(item.invoice_description || "", 40, currentY - 15, fontSize);
+
+      this._drawText((item.bag_qty?item.bag_qty:" ") +" x "+(item.pallet_qty?item.pallet_qty:"")+" KGS = "+(item.qty_mt?item.qty_mt:" ") + " MT" || "0.00", 320, currentY - 15, fontSize);
+      this._drawText(Number(item.unit_price).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }) || "0.00", 450, currentY - 15, fontSize);
+
+      const amountText = Number(item.total_amount).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+      let textWidth = 0;
+      let amountX = this.page.getWidth() - 40; // ค่า default ถ้าไม่มีข้อความ
+
+      if (amountText) {
+        textWidth = this.font.widthOfTextAtSize(amountText, fontSize);
+        amountX = this.page.getWidth() - textWidth - 40;
+      }
+      
+      // วาด Line Amount
+      this._drawText(amountText, amountX, currentY - 15, fontSize);
+
+      
+
+      // ลดพิกัด Y ลงไปสำหรับรายการถัดไป
+      currentY -= rowHeight;
+      // this._drawText(item.invoice_description || "", 40, currentY - 15, fontSize);
+
+      if(item.invoice_description2 != "" && item.invoice_description2 != null){
+        currentY -= rowHeight;
+        this._drawText( item.invoice_description2, 40, currentY , fontSize);
+      }
+      if(item.invoice_description3 != "" && item.invoice_description3 != null){
+        currentY -= rowHeight;
+        this._drawText( item.invoice_description3, 40, currentY , fontSize);
+      }
+      if(item.invoice_description4 != "" && item.invoice_description4 != null){
+        currentY -= rowHeight;
+        this._drawText( item.invoice_description4, 40, currentY , fontSize);
+      }
+      if(item.invoice_description5 != "" && item.invoice_description5 != null){
+        currentY -= rowHeight;
+        this._drawText( item.invoice_description5, 40, currentY , fontSize);
+      }
+      if(item.invoice_description6 != "" && item.invoice_description6 != null){
+        currentY -= rowHeight;
+        this._drawText( item.invoice_description6, 40, currentY , fontSize);
+      }
+      y = currentY
+
+    }
+
+    this.page.drawLine({
+      start: { x: 500, y: currentY },
+      end: { x: 555, y: currentY },
+      thickness: 1,
+    });
+
+    y = y+15
+    text = "TOTAL FOB " + this.data.loading_port;
+    textWidth = this.font.widthOfTextAtSize(text, fontSize);
+    x = this.page.getWidth() - textWidth - 120;
+    this._drawText(text , x, y - 30, fontSize);
+
+    text = Number(this.data.total_invoice_amount).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    textWidth = this.font.widthOfTextAtSize(text, fontSize);
+    x = this.page.getWidth() - textWidth - 40;
+
+    y = y - 30
+    this._drawText(text, x, y, fontSize);
+
+    if(this.data.freight_cost != null && this.data.freight_cost != 0) {
+      y -= 15;
+      text = "FREIGHT"
+      textWidth = this.font.widthOfTextAtSize(text, fontSize);
+      x = this.page.getWidth() - textWidth - 120;
+      this._drawText(text, x, y, fontSize);
+
+
+      text = Number(this.data.freight_cost).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+      
+      textWidth = this.font.widthOfTextAtSize(text, fontSize);
+      x = this.page.getWidth() - textWidth - 40;
+      this._drawText(text, x, y, fontSize);
+
+    }
+
+    if(this.data.insurance_cost != 0 && this.data.insurance_cost != null) {
+      y -= 15;
+      text = "INSURANCE"
+      textWidth = this.font.widthOfTextAtSize(text, fontSize);
+      x = this.page.getWidth() - textWidth - 120;
+      this._drawText(text, x, y, fontSize);
+
+
+      text = Number(this.data.insurance_cost).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+      
+      textWidth = this.font.widthOfTextAtSize(text, fontSize);
+      x = this.page.getWidth() - textWidth - 40;
+      this._drawText(text, x, y, fontSize);
+
+    }
+
+    if((this.data.insurance_cost != null && this.data.insurance_cost != 0) || (this.data.freight_cost != null && this.data.freight_cost != 0)) {
+      this.page.drawLine({
+        start: { x: 500, y: y - 2 },
+        end: { x: 555, y: y - 2 },
+        thickness: 1,
+        color:  rgb(0, 0, 0),
+      });
+
+      y -= 15
+      text = "TOTAL " + this.data.delivery_terms ;
+      textWidth = this.font.widthOfTextAtSize(text, fontSize);
+      x = this.page.getWidth() - textWidth - 120;
+      this._drawText(text , x, y, fontSize);
+
+      text = Number(this.data.total_amount).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+      textWidth = this.font.widthOfTextAtSize(text, fontSize);
+      x = this.page.getWidth() - textWidth - 40;
+      this._drawText(text, x, y, fontSize);
+
+    }
+
+    const thickness = 1;      
+    const gap = 2;              
+    const offsetFromText = 4;   
+
+    this.page.drawLine({
+        start: { x: 500, y: y - offsetFromText },
+        end: { x: 555, y: y - offsetFromText },
+        thickness: thickness,
+        color:  rgb(0, 0, 0),
+    });
+
+    this.page.drawLine({
+        start: { x: 500, y: y - offsetFromText - gap - thickness },
+        end: { x: 555, y: y - offsetFromText - gap - thickness },
+        thickness: thickness,
+        color: rgb(0, 0, 0),
+    });
+
+    y -= 15;
+    this._drawText('TOTAL', quantityX - 30, y, fontSize);
+
+    text = String(this.data.total_bag_qty);
+    textWidth = this.font.widthOfTextAtSize(text, fontSize);
+    x = 380 - textWidth -5; 
+
+    this.page.drawLine({
+        start: { x: quantityX, y: y+15 - offsetFromText-2 },
+        end: { x: 380-5, y: y+15 - offsetFromText-2 },
+        thickness: thickness,
+        color: rgb(0, 0, 0),
+    });
+
+    this._drawText(this.data.total_bag_qty, x, y, fontSize);
+
+    this.page.drawLine({
+        start: { x: quantityX, y: y - offsetFromText },
+        end: { x: 380-5, y: y - offsetFromText },
+        thickness: thickness,
+        color: rgb(0, 0, 0),
+    });
+
+    this._drawText('BAGS', quantityX + 40, y, fontSize);
+
+    if(this.data.total_pallet_qty != 0) {
+      y -= 15;
+      this._drawText('IN', quantityX - 30, y, fontSize);
+
+      text = String(this.data.total_pallet_qty);
+      textWidth = this.font.widthOfTextAtSize(text, fontSize);
+      x = 380 - textWidth-5 ; 
+
+      this._drawText(this.data.total_pallet_qty, x, y, fontSize);
+
+      this.page.drawLine({
+          start: { x: quantityX, y: y - offsetFromText },
+          end: { x: 380-5, y: y - offsetFromText },
+          thickness: thickness,
+          color: rgb(0, 0, 0),
+      });
+
+      this.page.drawLine({
+          start: { x: quantityX, y: y- offsetFromText - gap - thickness },
+          end: { x: 380-5, y: y- offsetFromText - gap - thickness },
+          thickness: thickness,
+          color: rgb(0, 0, 0),
+      });
+
+      this._drawText('PALLETS', quantityX + 40, y, fontSize);
+    }
+    
+
+    y -= 15 
+
+    text = "(TOTAL US DOLLARS " + this._numberToWords(this.data.total_invoice_amount) + " )" ;
+    this._drawText(text, 40, y, fontSize);
+
+    y_end = y-15;
+  }
+
+  _drawFooterAcc() {
+    let y = y_end;
+    const fontSize = 12;
+    const valueX = 100;
+
+    this._drawText(this.data.amountText, 40, y, fontSize);
+    y -=15;
+
+    /***** packing line */
+    this._drawText("PACKING : " , 40, y, fontSize);
+    this._drawText(this.data.packing_remark , 80, y, fontSize);
+    if(this.data.packing_remark2 != null && this.data.packing_remark2 != "") {
+      y -=15;
+      this._drawText(this.data.packing_remark2 , 80, y, fontSize);
+    }
+    if(this.data.packing_remark3 != null && this.data.packing_remark3 != "") {
+      y -=15;
+      this._drawText(this.data.packing_remark3 , 80, y, fontSize);
+    }
+    if(this.data.packing_remark4 != null && this.data.packing_remark4 != "") {
+      y -=15;
+      this._drawText(this.data.packing_remark4 , 80, y, fontSize);
+    }
+    if(this.data.packing_remark5 != null && this.data.packing_remark5 != "") {
+      y -=15;
+      this._drawText(this.data.packing_remark5 , 80, y, fontSize);
+    }
+    y -=15;
+
+      /***** SHIPPING MARK line */
+    this._drawText("SHIPPING MARK : ", 40, y, fontSize);
+    this._drawText( this.data.shipping_remark , valueX+5, y , fontSize);
+
+    if(this.data.shipping_remark2 != null && this.data.shipping_remark2 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark2, valueX+5, y , fontSize);
+    }
+    if(this.data.shipping_remark3 != null && this.data.shipping_remark3 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark3, valueX+5, y , fontSize);
+    }
+    if(this.data.shipping_remark4 != null && this.data.shipping_remark4 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark4, valueX+5, y , fontSize);
+    }
+    if(this.data.shipping_remark5 != null && this.data.shipping_remark5 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark5, valueX+5, y , fontSize);
+    }
+    if(this.data.shipping_remark6 != null && this.data.shipping_remark6 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark6, valueX+5, y , fontSize);
+    }
+    if(this.data.shipping_remark7 != null && this.data.shipping_remark7 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark7, valueX+5, y , fontSize);
+    }
+    if(this.data.shipping_remark8 != null && this.data.shipping_remark8 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark8, valueX+5, y , fontSize);
+    }
+    if(this.data.shipping_remark9 != null && this.data.shipping_remark9 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark9, valueX+5, y , fontSize);
+    }
+    if(this.data.shipping_remark10 != null && this.data.shipping_remark10 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark10, valueX+5, y , fontSize);
+    }
+
+    let count_batch = 0;
+      if(this.data.line_items[0].batch){
+        for (const item of this.data.line_items) {
+        count_batch += item.batch.length 
+      }
+    }
+
+    if(count_batch > 0){
+      y -=15;
+      this._drawText("BATCH NO : " , 40, y, fontSize);
+      let i_batch = 1;
+      for (const item of this.data.line_items) {
+        for (const i of item.batch) {
+          this._drawText(i_batch + ") " + i.batch_no, valueX, y , fontSize);
+          
+          let text_batch = i.bags + " Bags"
+          let textWidth = this.font.widthOfTextAtSize(text_batch, fontSize);
+          let BagsX = valueX+130 - textWidth;
+
+          this._drawText(text_batch, BagsX, y , fontSize);
+          y -=15;
+          i_batch++;
+        }
+      
+      }
+    } else {
+      y -=15;
+    }
+
+    
+    this._drawText("TOTAL NET WEIGHT :", 40, y, fontSize);
+
+    let text = (this.data.net_weight_kg?this.data.net_weight_kg:"")+ " KGS.";
+    let textWidth = this.font.widthOfTextAtSize(text, fontSize);
+    let x = 200 - textWidth ;
+    this._drawText((this.data.net_weight_kg?this.data.net_weight_kg:"") + " KGS.", x, y, fontSize);
+
+    y -=15;
+    this._drawText("TOTAL TARE WEIGHT :", 40, y, fontSize);
+
+    text = (this.data.tare_weight_kg?this.data.tare_weight_kg:" ") + " KGS.";
+    textWidth = this.font.widthOfTextAtSize(text, fontSize);
+    x = 200 - textWidth ;
+    this._drawText((this.data.tare_weight_kg?this.data.tare_weight_kg:" ") + " KGS.", x, y, fontSize);
+    
+    y -=15;
+    this._drawText("TOTAL GROSS WEIGHT :", 40, y, fontSize);
+    
+    text = (this.data.gross_weight_kg?this.data.gross_weight_kg:" ") + " KGS.";
+    textWidth = this.font.widthOfTextAtSize(text, fontSize);
+    x = 200 - textWidth ;
+    this._drawText(text, x, y, fontSize);
+    
+    y -=15;
+    this._drawText("COUNTRY OF ORIGIN : THAILAND", 40, y, fontSize);
+    y -=15;
+    this._drawText("REMARKS : " +this.data.remark, 40, y, fontSize);
+    y -=15;
+    this._drawText("WE HEREBY CERTIFY THIS INVOICE IS TRUE AND CORRECT.", 40, y, fontSize);
+
+    if(this.data.for_delivery_to != "" && this.data.for_delivery_to != null) {
+      y -=15;
+      this._drawText("FOR DELIVERY TO : " +this.data.for_delivery_to, 40, y, fontSize);
+    }
+    
+  }
+
+   _drawTitlePack() {
+    const text = "PACKING LIST";
+
+    const textWidth = this.font.widthOfTextAtSize(text, 20);
+
+    const pageWidth = this.page.getWidth();
+
+    const x = (pageWidth - textWidth) / 2;
+
+    this._drawText(
+      text,
+      x,
+      710,
+      20,
+      true
+    );
+
+    this._drawText("DATE : ", 440, 720, 12, true);
+    const date_obj = new Date();
+
+    const date_formattedDateUTC = date_obj.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC' // Forces UTC interpretation
+    }).toUpperCase();
+    this._drawText(date_formattedDateUTC, 470, 720, 12);
+
+  }
+
+  _drawCustomerInfoPack() {
+    const labelSize = 12;
+    const valueSize = 12;
+
+    const leftX = 40;
+    const valueX = 120;
+
+    const rightLabelX = 350;
+    const rightValueX = 410;    
+
+    let startY = 690;
+    let startYright = 690;
+    const lineGap = 15; 
+  
+    this._drawText("SOLD TO : ", leftX, startY, labelSize, true);
+    this._drawText(this.data.customer, valueX-30, startY, valueSize);
+
+   
+
+    startY -= 15;
+    this._drawText(this.data.address1, valueX-30, startY, valueSize);
+
+    if(this.data.address2){
+      startY -= 15;
+      this._drawText(this.data.address2, valueX-30, startY, valueSize);
+    }
+    if(this.data.address3){
+      startY -= 15;
+      this._drawText(this.data.address3, valueX-30, startY, valueSize);
+    }
+    if(this.data.address4){
+      startY -= 15;
+      this._drawText(this.data.address4, valueX-30, startY, valueSize);
+    }
+    if(this.data.address5){
+      startY -= 15;
+      this._drawText(this.data.address5, valueX-30, startY, valueSize);
+    }
+    if(this.data.address6){
+      startY -= 15;
+      this._drawText(this.data.address6, valueX-30, startY, valueSize);
+    }
+
+    startY -= 15;
+    this._drawText("SHIPPER :", leftX, startY, labelSize, true);
+    this._drawText(this.data.shipper, valueX-30, startY, valueSize);
+
+    
+    startY -= 15;
+    this._drawText("SHIPPED TO :", leftX, startY, labelSize, true);
+    this._drawText(this.data.shipping_address, valueX-25, startY, valueSize);
+
+    startY -= 15;
+    this._drawText("CONTRACT NO. : ", leftX, startY, labelSize, true);
+    this._drawText(this.data.contract_pi_no, valueX, startY, valueSize);
+
+    // this._drawText("DATE :", rightLabelX+100, startY - (lineGap * 0.5), labelSize, true);
+    // this._drawText(invoice_date_formattedDateUTC, rightLabelX+135, startY - (lineGap * 0.5), valueSize);
+
+    this._drawText("INVOICE NO. :  ", rightLabelX, startYright, labelSize, true);
+    this._drawText(this.data.invoice_number, rightValueX, startYright , valueSize);
+
+    if(this.data.consignee != null && this.data.consignee !="") {
+      startYright -=15
+      this._drawText("CONSIGNEE :  ", rightLabelX, startYright, labelSize, true);
+
+      const consignee = this._splitText(
+          this.data.consignee,
+          150,       
+          this.font,
+          valueSize
+      );
+
+      consignee.forEach((line, index) => {
+        if(index > 0) {
+          startYright -= 15;
+          this._drawText(
+            line,
+            rightLabelX,
+            startYright,
+            valueSize
+        );
+        } else {
+          this._drawText(
+            line,
+                rightValueX,
+            startYright,
+            valueSize
+          );
+        }
+        
+      }); 
+    }
+    
+    // this._drawText(this.data.consignee1, rightValueX, startYright , valueSize);
+
+    if(this.data.consignee2 !="" && this.data.consignee2 != null) {
+      startYright -=15
+      this._drawText(this.data.consignee2, rightLabelX, startYright , valueSize);
+    }
+
+    if(this.data.consignee3 !="" && this.data.consignee3 != null) {
+      startYright -=15
+      this._drawText(this.data.consignee3, rightLabelX, startYright , valueSize);
+    }
+
+    y_end = startY
+   
+  }
+
+
+  _drawTablePack() {
+    let y = y_end-30;
+    const fontSize = 12;
+    const quantityX = 340;
+    const leftX = 40;
+    const valueX = 200;
+
+    this.page.drawLine({
+      start: { x: 40, y: y + 25 },
+      end: { x: 555, y: y + 25 },
+      thickness: 1,
+    });
+
+    y +=15;
+    this._drawText("DESCRIPTION OF GOODS : ", leftX, y , fontSize, true);
+    for (const item of this.data.line_items) {
+      this._drawText( item.invoice_description, valueX, y , fontSize);
+      if(item.invoice_description2 != "" && item.invoice_description2 != null){
+        y -=15;
+        this._drawText( item.invoice_description2, valueX, y , fontSize);
+      }
+      if(item.invoice_description3 != "" && item.invoice_description3 != null){
+        y -=15;
+        this._drawText( item.invoice_description3, valueX, y , fontSize);
+      }
+      if(item.invoice_description4 != "" && item.invoice_description4 != null){
+        y -=15;
+        this._drawText( item.invoice_description4, valueX, y , fontSize);
+      }
+      if(item.invoice_description5 != "" && item.invoice_description5 != null){
+        y -=15;
+        this._drawText( item.invoice_description5, valueX, y , fontSize);
+      }
+      if(item.invoice_description6 != "" && item.invoice_description6 != null){
+        y -=15;
+        this._drawText( item.invoice_description6, valueX, y , fontSize);
+      }
+      y -=15;
+    }
+    
+    
+    this._drawText("PACKING CONDITION : ", leftX, y , fontSize, true);
+    this._drawText( this.data.packing_remark, valueX, y , fontSize);
+
+    if(this.data.packing_remark2 != null && this.data.packing_remark2 != ""){
+      y -=15;
+      this._drawText(this.data.packing_remark2, valueX, y , fontSize);
+    }
+    if(this.data.packing_remark3 != null && this.data.packing_remark3 != ""){
+      y -=15;
+      this._drawText(this.data.packing_remark3, valueX, y , fontSize);
+    }
+    if(this.data.packing_remark4 != null && this.data.packing_remark4 != ""){
+      y -=15;
+      this._drawText(this.data.packing_remark4, valueX, y , fontSize);
+    }
+    if(this.data.packing_remark5 != null && this.data.packing_remark5 != ""){
+      y -=15;
+      this._drawText(this.data.packing_remark5, valueX, y , fontSize);
+    }
+
+    y -=15;
+    this._drawText("SHIPPING MARK : ", leftX, y , fontSize, true);
+    this._drawText( this.data.shipping_remark , valueX, y , fontSize);
+
+    if(this.data.shipping_remark2 != null && this.data.shipping_remark2 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark2, valueX, y , fontSize);
+    }
+    if(this.data.shipping_remark3 != null && this.data.shipping_remark3 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark3, valueX, y , fontSize);
+    }
+    if(this.data.shipping_remark4 != null && this.data.shipping_remark4 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark4, valueX, y , fontSize);
+    }
+    if(this.data.shipping_remark5 != null && this.data.shipping_remark5 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark5, valueX, y , fontSize);
+    }
+    if(this.data.shipping_remark6 != null && this.data.shipping_remark6 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark6, valueX, y , fontSize);
+    }
+    if(this.data.shipping_remark7 != null && this.data.shipping_remark7 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark7, valueX, y , fontSize);
+    }
+    if(this.data.shipping_remark8 != null && this.data.shipping_remark8 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark8, valueX, y , fontSize);
+    }
+    if(this.data.shipping_remark9 != null && this.data.shipping_remark9 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark9, valueX, y , fontSize);
+    }
+    if(this.data.shipping_remark10 != null && this.data.shipping_remark10 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark10, valueX, y , fontSize);
+    }
+
+    y -=15;
+    this._drawText("QUANTITY : ", leftX, y , fontSize, true);
+
+     this._drawText(
+          (this.data.quantity?this.data.quantity:" "),
+          valueX,
+          y,
+          fontSize
+        );
+    
+   /* const quantity = this._splitText(
+        this.data.quantity,
+        350,       
+        this.font,
+        fontSize
+    );
+
+    quantity.forEach((line, index) => {
+      if(index > 0) {
+        y -= 15;
+        this._drawText(
+          line,
+          valueX,
+          y,
+          fontSize
+      );
+      } else {
+        this._drawText(
+          line,
+          valueX,
+          y,
+          fontSize
+        );
+      }
+      
+    });*/
+
+    y -=15;
+    this._drawText("VESSEL'S NAME : ", leftX, y , fontSize, true);
+    this._drawText( this.data.vessel , valueX, y , fontSize);
+
+    y -=15;
+    this._drawText("ETD : ", leftX, y , fontSize, true);
+
+    const etd_obj = new Date(this.data.etd);
+
+    const etd_date_formattedDateUTC = etd_obj.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC' // Forces UTC interpretation
+    }).toUpperCase();
+
+    this._drawText( etd_date_formattedDateUTC , valueX, y , fontSize);
+
+    y -=15;
+    this._drawText("ETA : ", leftX, y , fontSize, true);
+
+    const eta_obj = new Date(this.data.eta);
+
+    const eta_date_formattedDateUTC = eta_obj.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC' // Forces UTC interpretation
+    }).toUpperCase();
+    this._drawText( eta_date_formattedDateUTC , valueX, y , fontSize);
+
+     y -=15;
+    this._drawText("TOTAL NET WEIGHT : ", leftX, y , fontSize, true);
+    this._drawText( Number(this.data.net_weight_kg).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }) +" KGS.", valueX, y , fontSize);
+
+    y -=15;
+    this._drawText("TOTAL GROSS WEIGHT : ", leftX, y , fontSize, true);
+    this._drawText( Number(this.data.gross_weight_kg).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }) +" KGS.", valueX, y , fontSize);
+
+    y -=15;
+    this._drawText("COUNTRY OF ORIGIN : ", leftX, y , fontSize, true);
+    this._drawText( "THAILAND" , valueX, y , fontSize);
+
+    y -=15;
+    this._drawText("NET WEIGHT OF EACH CONTAINER : ", leftX, y , fontSize, true);
+    this._drawText( Number(this.data.net_weight_of_each_container).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }) +" KGS.", valueX, y , fontSize);
+
+    y -=15;
+    this._drawText("GROSS WEIGHT OF EACH CONTAINER : ", leftX, y , fontSize, true);
+    this._drawText( Number(this.data.gross_weight_per_container).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }) +" KGS." , valueX, y , fontSize);
+    
+    y -=15;
+    this._drawText("WE HEREBY CERTIFY THIS PACKING LIST IS TRUE AND CORRECT ", leftX, y , fontSize, true);
+
+    y_end = y-60;
+  }
+
+  _drawFooterPack() {
+    let y = y_end;
+    const fontSize = 12;
+
+    
+  
+    y -=50;
+
+    this.page.drawLine({
+      start: { x: 400, y: y  },
+      end: { x: 520, y: y},
+      thickness: 1,
+    });
+    y -=15;
+     this._drawText("AUTHORIZED SIGNATURE", 415, y, fontSize);
+     y -=15;
+    let text ="GENERAL STARCH LIMITED AS MANUFACTURER"
+    this._drawText(text, 380, y, fontSize);
   }
 
   _splitText(text, maxWidth, font, size) {
