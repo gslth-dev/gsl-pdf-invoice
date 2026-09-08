@@ -632,26 +632,26 @@ class InvoiceGenerator {
 
     this._drawText("TOTAL NET WEIGHT :", 40, y, fontSize);
 
-    let text = (this.data.net_weight_kg?this.data.net_weight_kg:"") + " KGS.";
+    let text = (this.data.total_net_weight_kg?this.data.total_net_weight_kg:"") + " KGS.";
     let textWidth = this.font.widthOfTextAtSize(text, fontSize);
     let x = 200 - textWidth ;
-    this._drawText((this.data.net_weight_kg?this.data.net_weight_kg:"") + " KGS.", x, y, fontSize);
+    this._drawText((this.data.total_net_weight_kg?this.data.total_net_weight_kg:"") + " KGS.", x, y, fontSize);
 
     y -=15;
     this._drawText("TOTAL TARE WEIGHT :", 40, y, fontSize);
 
-    text = (this.data.tare_weight_kg?this.data.tare_weight_kg:" ") + " KGS.";
+    text = (this.data.total_tare_weight_kg?this.data.total_tare_weight_kg:" ") + " KGS.";
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
     x = 200 - textWidth ;
-    this._drawText((this.data.tare_weight_kg?this.data.tare_weight_kg:" ") + " KGS.", x, y, fontSize);
+    this._drawText((this.data.total_tare_weight_kg?this.data.total_tare_weight_kg:" ") + " KGS.", x, y, fontSize);
     
     y -=15;
     this._drawText("TOTAL GROSS WEIGHT :", 40, y, fontSize);
     
-    text = (this.data.gross_weight_kg?this.data.gross_weight_kg:" ") + " KGS.";
+    text = (this.data.total_gross_weight_kg?this.data.total_gross_weight_kg:" ") + " KGS.";
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
     x = 200 - textWidth ;
-    this._drawText((this.data.gross_weight_kg?this.data.gross_weight_kg:" ") + " KGS.", x, y, fontSize);
+    this._drawText((this.data.total_gross_weight_kg?this.data.total_gross_weight_kg:" ") + " KGS.", x, y, fontSize);
     
     y -=15;
     this._drawText("COUNTRY OF ORIGIN : THAILAND", 40, y, fontSize);
@@ -1499,23 +1499,23 @@ class InvoiceGenerator {
     
     this._drawText("TOTAL NET WEIGHT :", 40, y, fontSize);
 
-    let text = (this.data.net_weight_kg?this.data.net_weight_kg:"")+ " KGS.";
+    let text = (this.data.total_net_weight_kg?this.data.total_net_weight_kg:"")+ " KGS.";
     let textWidth = this.font.widthOfTextAtSize(text, fontSize);
     let x = 200 - textWidth ;
-    this._drawText((this.data.net_weight_kg?this.data.net_weight_kg:"") + " KGS.", x, y, fontSize);
+    this._drawText((this.data.total_net_weight_kg?this.data.total_net_weight_kg:"") + " KGS.", x, y, fontSize);
 
     y -=15;
     this._drawText("TOTAL TARE WEIGHT :", 40, y, fontSize);
 
-    text = (this.data.tare_weight_kg?this.data.tare_weight_kg:" ") + " KGS.";
+    text = (this.data.total_tare_weight_kg?this.data.total_tare_weight_kg:" ") + " KGS.";
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
     x = 200 - textWidth ;
-    this._drawText((this.data.tare_weight_kg?this.data.tare_weight_kg:" ") + " KGS.", x, y, fontSize);
+    this._drawText((this.data.total_tare_weight_kg?this.data.total_tare_weight_kg:" ") + " KGS.", x, y, fontSize);
     
     y -=15;
     this._drawText("TOTAL GROSS WEIGHT :", 40, y, fontSize);
     
-    text = (this.data.gross_weight_kg?this.data.gross_weight_kg:" ") + " KGS.";
+    text = (this.data.total_gross_weight_kg?this.data.total_gross_weight_kg:" ") + " KGS.";
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
     x = 200 - textWidth ;
     this._drawText(text, x, y, fontSize);
@@ -1847,14 +1847,14 @@ class InvoiceGenerator {
 
      y -=15;
     this._drawText("TOTAL NET WEIGHT : ", leftX, y , fontSize, true);
-    this._drawText( Number(this.data.net_weight_kg).toLocaleString('en-US', {
+    this._drawText( Number(this.data.total_net_weight_kg).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       }) +" KGS.", valueX, y , fontSize);
 
     y -=15;
     this._drawText("TOTAL GROSS WEIGHT : ", leftX, y , fontSize, true);
-    this._drawText( Number(this.data.gross_weight_kg).toLocaleString('en-US', {
+    this._drawText( Number(this.data.total_gross_weight_kg).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       }) +" KGS.", valueX, y , fontSize);
