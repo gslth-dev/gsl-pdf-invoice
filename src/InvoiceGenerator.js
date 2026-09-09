@@ -1780,15 +1780,15 @@ class InvoiceGenerator {
     y -=15;
     this._drawText("QUANTITY : ", leftX, y , fontSize, true);
 
-     this._drawText(
-          (this.data.quantity?this.data.quantity:" "),
-          valueX,
-          y,
-          fontSize
-        );
+    //  this._drawText(
+    //       (this.data.quantity?this.data.quantity:" "),
+    //       valueX,
+    //       y,
+    //       fontSize
+    //     );
     
-   /* const quantity = this._splitText(
-        this.data.quantity,
+    const quantity = this._splitText(
+        this.data.quantity?this.data.quantity:" ",
         350,       
         this.font,
         fontSize
@@ -1812,7 +1812,7 @@ class InvoiceGenerator {
         );
       }
       
-    });*/
+    });
 
     y -=15;
     this._drawText("VESSEL'S NAME : ", leftX, y , fontSize, true);
