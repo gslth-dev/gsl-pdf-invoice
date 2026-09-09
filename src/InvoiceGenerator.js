@@ -316,7 +316,7 @@ class InvoiceGenerator {
 
       this._drawText(item.invoice_description || "", 40, currentY - 15, fontSize);
 
-      this._drawText((item.bag_qty?item.bag_qty:" ") +" x "+(item.pallet_qty?item.pallet_qty:"")+" KGS = "+(item.qty_mt?item.qty_mt:" ") + " MT" || "0.00", 320, currentY - 15, fontSize);
+      this._drawText((item.bag_qty?item.bag_qty:" ") +" x "+(item.pallet_qty?item.pallet_qty:"")+" KGS = "+(item.quantity?item.quantity:" ") + " MT" || "0.00", 320, currentY - 15, fontSize);
 
       this._drawText(Number(item.unit_price).toLocaleString('en-US', {
         minimumFractionDigits: 2,
@@ -369,8 +369,8 @@ class InvoiceGenerator {
     }
 
     this.page.drawLine({
-      start: { x: 500, y: currentY },
-      end: { x: 555, y: currentY },
+      start: { x: 500, y: currentY-2 },
+      end: { x: 555, y: currentY-2 },
       thickness: 1,
     });
 
@@ -820,7 +820,7 @@ class InvoiceGenerator {
       this._drawText(index, 45, currentY - 15, fontSize);
       this._drawText((item.description?item.description:"") + " " + (item.product_name?item.product_name:"")|| "", 70, currentY - 15, fontSize);
 
-      this._drawText((item.bag_qty?item.bag_qty:"") +" x "+(item.pallet_qty?item.pallet_qty:"")+" KGS = "+(item.qty_mt ?item.qty_mt :"")+ " MT" || "0.00", 320, currentY - 15, fontSize);
+      this._drawText((item.bag_qty?item.bag_qty:"") +" x "+(item.pallet_qty?item.pallet_qty:"")+" KGS = "+(item.quantity ?item.quantity :"")+ " MT" || "0.00", 320, currentY - 15, fontSize);
       this._drawText(item.unit_price || "0.00", 450, currentY - 15, fontSize);
 
       const amountText =  Number(item.total_amount).toLocaleString('en-US', {
@@ -1183,7 +1183,7 @@ class InvoiceGenerator {
   
       this._drawText(item.invoice_description || "", 40, currentY - 15, fontSize);
 
-      this._drawText((item.bag_qty?item.bag_qty:" ") +" x "+(item.pallet_qty?item.pallet_qty:"")+" KGS = "+(item.qty_mt?item.qty_mt:" ") + " MT" || "0.00", 320, currentY - 15, fontSize);
+      this._drawText((item.bag_qty?item.bag_qty:" ") +" x "+(item.pallet_qty?item.pallet_qty:"")+" KGS = "+(item.quantity?item.quantity:" ") + " MT" || "0.00", 320, currentY - 15, fontSize);
       this._drawText(Number(item.unit_price).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
@@ -1235,8 +1235,8 @@ class InvoiceGenerator {
     }
 
     this.page.drawLine({
-      start: { x: 500, y: currentY },
-      end: { x: 555, y: currentY },
+      start: { x: 500, y: currentY-2 },
+      end: { x: 555, y: currentY-2 },
       thickness: 1,
     });
 
