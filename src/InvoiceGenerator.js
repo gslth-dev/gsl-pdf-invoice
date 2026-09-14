@@ -37,7 +37,12 @@ class InvoiceGenerator {
       path.resolve(__dirname, './fonts/arialceb.ttf')
     );
 
+    const boldItalicBytes = fs.readFileSync(
+      path.resolve(__dirname, './fonts/ArialCEBoldItalic.ttf')
+    );
+
     this.bold = await this.pdfDoc.embedFont(boldBytes);
+    this.boldItalic = await this.pdfDoc.embedFont(boldItalicBytes);
 
     await this._drawHeader();
 
@@ -67,35 +72,6 @@ class InvoiceGenerator {
     return await this.pdfDoc.save();
   }
 
-  async _generate(outputPath = "invoice.pdf") {
-    this.pdfDoc = await PDFDocument.create();
-
-    this.page = this.pdfDoc.addPage([595.28, 841.89]);
-
-    this.width = this.page.getWidth();
-    this.height = this.page.getHeight();
-
-    this.font = await this.pdfDoc.embedFont(
-      StandardFonts.Helvetica
-    );
-
-    this.bold = await this.pdfDoc.embedFont(
-      StandardFonts.HelveticaBold
-    );
-
-    this.drawHeader();
-    this.drawTitle();
-    this.drawCustomerInfo();
-    this.drawTable();
-    this.drawFooter();
-
-    const pdfBytes = await this.pdfDoc.save();
-
-    fs.writeFileSync(outputPath, pdfBytes);
-
-    return outputPath;
-  }
-
   _drawText(
     text,
     x,
@@ -109,7 +85,35 @@ class InvoiceGenerator {
       y,
       size,
       color,
-      font: bold ? this.bold : this.font,
+      font: bold ? this.bold :this.font ,
+    });
+  }
+
+  _drawTextAddr(
+    text,
+    x,
+    y,
+    size = 9,
+    color = rgb(0, 0, 0)
+  ) {
+    console.log("5")
+     const maxWidth = 200;
+
+    const textWidth = this.boldItalic.widthOfTextAtSize(text, size);
+
+    let characterSpacing = 0;
+
+    if (text.length > 1 && textWidth > maxWidth) {
+      characterSpacing =
+        (maxWidth - textWidth) / (text.length - 1);
+    }
+    this.page.drawText(String(text || ""), {
+      x,
+      y,
+      size,
+      font: this.boldItalic,
+      characterSpacing
+      // characterSpacing: 10, 
     });
   }
 
@@ -126,28 +130,28 @@ class InvoiceGenerator {
         height: 40
       });
 
-    this._drawText(
-      "3539 New Rama IX Road, Phatthanakan, Suan Luang, Bangkok 10250, Thailand",
-      260,
+    this._drawTextAddr(
+      "3539 New Rama IX Road, Phatthanakan, Suan Luang, Bangkok 10250,",
+      270,
       805,
-      8,
-      true
+      9
     );
 
-    this._drawText(
-      "Tel : +66 2732 2792  Fax : +66 2732 2711  Website : www.gsl-th.com",
-      260,
+  
+
+    this._drawTextAddr(
+      "Thailand Tel : +66 2732 2792  Fax : +66 2732 2711 www.gsl-th.com",
+      270,
       793,
-      8,
-      true
+      9
     );
 
-    this._drawText(
+    this._drawTextAddr(
       "Tax ID : 0105535113963  Head Office",
-      260,
+      270,
       781,
-      8,
-      true
+      9
+      
     );
 
     this._drawText(
@@ -605,7 +609,7 @@ console.log(currentY)
     const fontSize = 8;
     const valueX = 100;
 
-    this._drawText(this.data.amountText, 40, y, fontSize);
+    this._drawText(this.data.amountText, 40, y, fontSize, false);
     y -=15;
 
     /***** packing line */
