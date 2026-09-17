@@ -158,18 +158,32 @@ class InvoiceGenerator {
       "PAGE 1 OF 1",
       500,
       710,
-      8
+      7
     );
   }
 
   _drawTitle() {
+
+    let text = 'INVOICE'
+    if(this.data.customer_code == 'E0617') {
+      text = "INVOICE/PACKING LIST";
+     
+    } 
+
+    const textWidth = this.font.widthOfTextAtSize(text, 20);
+
+    const pageWidth = this.page.getWidth();
+
+    const x = (pageWidth - textWidth) / 2;
+
     this._drawText(
-      "INVOICE",
-      255,
-      690,
+      text,
+      x,
+      710,
       18,
       true
     );
+    
   }
 
   _drawCustomerInfo() {
@@ -195,7 +209,7 @@ class InvoiceGenerator {
 
     leftY -= lineGap
     this._drawText("CONTRACT NO. :", leftX, leftY, labelSize, false);
-    this._drawText(this.data.contract_pi_no, valueX, leftY, valueSize);
+    this._drawText(this.data.po_number, valueX, leftY, valueSize);
 
     leftY -= lineGap
     this._drawText("BILL TO :", leftX, leftY, labelSize, false);
@@ -228,26 +242,26 @@ class InvoiceGenerator {
     leftY -= lineGap;
     this._drawText("TERM OF PAYMENT :", leftX, leftY, labelSize, false);
     
-    // this._drawText(this.data.payment_term, valueX, leftY, valueSize);
+    this._drawText(this.data.payment_term, valueX, leftY, valueSize);
 
-    const payment_term = this._splitText(
-        this.data.payment_term,
-        200,       
-        this.font,
-        valueSize
-    );
+    // const payment_term = this._splitText(
+    //     this.data.payment_term,
+    //     200,       
+    //     this.font,
+    //     valueSize
+    // );
 
-    payment_term.forEach((line, index) => {
-      if(index > 0){
-          leftY -= lineGap;
-      }
-      this._drawText(
-        line,
-        valueX+10,
-        leftY,
-        valueSize
-      );
-    }); 
+    // payment_term.forEach((line, index) => {
+    //   if(index > 0){
+    //       leftY -= lineGap;
+    //   }
+    //   this._drawText(
+    //     line,
+    //     valueX+10,
+    //     leftY,
+    //     valueSize
+    //   );
+    // }); 
     
     
 
@@ -274,7 +288,7 @@ class InvoiceGenerator {
 
     rightY -= (lineGap * 3)
     this._drawText("SHIP TO :", rightLabelX, rightY, labelSize, false);
-    this._drawText(this.data.shipping_address, rightValueX, rightY, valueSize);
+    this._drawText(this.data.destination_port, rightValueX, rightY, valueSize);
 
 
 
@@ -386,7 +400,7 @@ class InvoiceGenerator {
       }); 
 
 
-      this._drawText((item.bag_qty?item.bag_qty:" ") +" x "+(item.pallet_qty?item.pallet_qty:"")+" KGS = "+(item.quantity?item.quantity:" ") + " MT" || "0.00", 320, currentY - 15, fontSize);
+      this._drawText((item.bag_qty?item.bag_qty:" ") +" x "+(item.packaging_type?item.packaging_type:"")+" KGS = "+(item.quantity?item.quantity:" ") + " MT" || "0.00", 320, currentY - 15, fontSize);
 
       this._drawText(Number(item.unit_price).toLocaleString('en-US', {
         minimumFractionDigits: 2,
@@ -887,13 +901,13 @@ console.log(currentY)
     let index = 0;
     for (const item of this.data.line_items) {
       index++;
-      total_pallet_qty +=item.pallet_qty;
+      total_pallet_qty +=item.packaging_type;
       total_bag_qty +=item.bag_qty;
 
       this._drawText(index, 45, currentY - 15, fontSize);
       this._drawText((item.description?item.description:"") + " " + (item.product_name?item.product_name:"")|| "", 70, currentY - 15, fontSize);
 
-      this._drawText((item.bag_qty?item.bag_qty:"") +" x "+(item.pallet_qty?item.pallet_qty:"")+" KGS = "+(item.quantity ?item.quantity :"")+ " MT" || "0.00", 320, currentY - 15, fontSize);
+      this._drawText((item.bag_qty?item.bag_qty:"") +" x "+(item.packaging_type?item.packaging_type:"")+" KGS = "+(item.quantity ?item.quantity :"")+ " MT" || "0.00", 320, currentY - 15, fontSize);
       this._drawText(item.unit_price || "0.00", 450, currentY - 15, fontSize);
 
       const amountText =  Number(item.total_amount).toLocaleString('en-US', {
@@ -1126,7 +1140,7 @@ console.log(currentY)
 
     leftY -= lineGap
     this._drawText("CONTRACT NO. :", leftX, leftY, labelSize, false);
-    this._drawText(this.data.contract_pi_no, valueX, leftY, valueSize);
+    this._drawText(this.data.po_number, valueX, leftY, valueSize);
 
     leftY -= lineGap
     this._drawText("BILL TO :", leftX, leftY, labelSize, false);
@@ -1201,7 +1215,7 @@ console.log(currentY)
 
     rightY -= (lineGap * 3)
     this._drawText("SHIP TO :", rightLabelX, rightY, labelSize, false);
-    this._drawText(this.data.shipping_address, rightValueX, rightY, valueSize);
+    this._drawText(this.data.destination_port, rightValueX, rightY, valueSize);
 
 
 
@@ -1312,7 +1326,7 @@ console.log(currentY)
         );
       }); 
 
-      this._drawText((item.bag_qty?item.bag_qty:" ") +" x "+(item.pallet_qty?item.pallet_qty:"")+" KGS = "+(item.quantity?item.quantity:" ") + " MT" || "0.00", 320, currentY - 15, fontSize);
+      this._drawText((item.bag_qty?item.bag_qty:" ") +" x "+(item.packaging_type?item.packaging_type:"")+" KGS = "+(item.quantity?item.quantity:" ") + " MT" || "0.00", 320, currentY - 15, fontSize);
       this._drawText(Number(item.unit_price).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
@@ -1680,7 +1694,7 @@ console.log(currentY)
       true
     );
 
-    this._drawText("DATE : ", 440, 720, 12, false);
+    this._drawText("DATE : ", 440, 720, 8, false);
     const date_obj = new Date();
 
     const date_formattedDateUTC = date_obj.toLocaleDateString('en-US', {
@@ -1689,7 +1703,7 @@ console.log(currentY)
       year: 'numeric',
       timeZone: 'UTC' // Forces UTC interpretation
     }).toUpperCase();
-    this._drawText(date_formattedDateUTC, 470, 720, 12);
+    this._drawText(date_formattedDateUTC, 470, 720, 8);
 
   }
 
@@ -1736,18 +1750,18 @@ console.log(currentY)
       this._drawText(this.data.address6, valueX-30, startY, valueSize);
     }
 
-    startY -= 15;
-    this._drawText("SHIPPER :", leftX, startY, labelSize, false);
-    this._drawText(this.data.shipper, valueX-30, startY, valueSize);
+    // startY -= 15;
+    // this._drawText("SHIPPER :", leftX, startY, labelSize, false);
+    // this._drawText(this.data.shipper, valueX-30, startY, valueSize);
 
     
     startY -= 15;
-    this._drawText("SHIPPED TO :", leftX, startY, labelSize, false);
+    this._drawText("SHIP TO :", leftX, startY, labelSize, false);
     this._drawText(this.data.shipping_address, valueX-25, startY, valueSize);
 
     startY -= 15;
     this._drawText("CONTRACT NO. : ", leftX, startY, labelSize, false);
-    this._drawText(this.data.contract_pi_no, valueX, startY, valueSize);
+    this._drawText(this.data.po_number, valueX, startY, valueSize);
 
     // this._drawText("DATE :", rightLabelX+100, startY - (lineGap * 0.5), labelSize, false);
     // this._drawText(invoice_date_formattedDateUTC, rightLabelX+135, startY - (lineGap * 0.5), valueSize);
