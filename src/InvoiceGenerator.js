@@ -2121,5 +2121,5 @@ class InvoiceGenerator {
   }
 }
 
-export default InvoiceGenerator;
-// export { InvoiceGenerator as GenService };
+// export default InvoiceGenerator;
+export { InvoiceGenerator as GenService };
