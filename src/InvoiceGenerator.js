@@ -293,8 +293,8 @@ class InvoiceGenerator {
 
 
     rightY = leftY + (lineGap * 2)
-    if(this.data.invoice_due_date != "" && this.data.invoice_due_date != null) {
-      const due_date_obj = new Date(this.data.invoice_due_date);
+    if(this.data.due_date != "" && this.data.due_date != null) {
+      const due_date_obj = new Date(this.data.due_date);
 
       const due_date_formattedDateUTC = due_date_obj.toLocaleDateString('en-US', {
         month: 'long',
@@ -380,16 +380,16 @@ class InvoiceGenerator {
 
       // this._drawText(item.invoice_description || "", 40, currentY - 15, fontSize);
 
-      const invoice_description = this._splitText(
-          item.invoice_description,
+      const product_name = this._splitText(
+          item.product_name,
           250,       
           this.font,
           fontSize
       );
 
       let a = 0
-      console.log(invoice_description)
-      invoice_description.forEach((line, index) => {
+      console.log(product_name)
+      product_name.forEach((line, index) => {
           a -= 15;
           this._drawText(
             line,
@@ -428,29 +428,10 @@ class InvoiceGenerator {
       currentY -= rowHeight - a;
 
 
-console.log(currentY)
+      console.log(currentY)
       // this._drawText(item.invoice_description || "", 40, currentY - 15, fontSize);
 
-      if(item.invoice_description2 != "" && item.invoice_description2 != null){
-        currentY -= rowHeight;
-        this._drawText( item.invoice_description2, 40, currentY , fontSize);
-      }
-      if(item.invoice_description3 != "" && item.invoice_description3 != null){
-        currentY -= rowHeight;
-        this._drawText( item.invoice_description3, 40, currentY , fontSize);
-      }
-      if(item.invoice_description4 != "" && item.invoice_description4 != null){
-        currentY -= rowHeight;
-        this._drawText( item.invoice_description4, 40, currentY , fontSize);
-      }
-      if(item.invoice_description5 != "" && item.invoice_description5 != null){
-        currentY -= rowHeight;
-        this._drawText( item.invoice_description5, 40, currentY , fontSize);
-      }
-      if(item.invoice_description6 != "" && item.invoice_description6 != null){
-        currentY -= rowHeight;
-        this._drawText( item.invoice_description6, 40, currentY , fontSize);
-      }
+   
       y = currentY
 
     }
@@ -896,16 +877,34 @@ console.log(currentY)
 
     let currentY = y; 
     const rowHeight = 15; // ความสูงของแต่ละแถว
-    let total_bag_qty = 0;
-    let total_pallet_qty = 0;
+
     let index = 0;
     for (const item of this.data.line_items) {
       index++;
-      total_pallet_qty +=item.packaging_type;
-      total_bag_qty +=item.bag_qty;
+
 
       this._drawText(index, 45, currentY - 15, fontSize);
-      this._drawText((item.description?item.description:"") + " " + (item.product_name?item.product_name:"")|| "", 70, currentY - 15, fontSize);
+
+       const product_name = this._splitText(
+          item.product_name,
+          250,       
+          this.font,
+          fontSize
+      );
+
+      let a = 0
+      console.log(product_name)
+      product_name.forEach((line, index) => {
+          a -= 15;
+          this._drawText(
+            line,
+            40,
+            currentY+a,
+            fontSize
+          );
+      }); 
+
+      // this._drawText((item.description?item.description:"") + " " + (item.product_name?item.product_name:"")|| "", 70, currentY - 15, fontSize);
 
       this._drawText((item.bag_qty?item.bag_qty:"") +" x "+(item.packaging_type?item.packaging_type:"")+" KGS = "+(item.quantity ?item.quantity :"")+ " MT" || "0.00", 320, currentY - 15, fontSize);
       this._drawText(item.unit_price || "0.00", 450, currentY - 15, fontSize);
@@ -932,8 +931,13 @@ console.log(currentY)
       });
 
       // ลดพิกัด Y ลงไปสำหรับรายการถัดไป
-      currentY -= rowHeight;
+      currentY -= rowHeight - a;
+
+
+      console.log(currentY)
+    
       y = currentY
+
 
     }
 
@@ -1040,25 +1044,25 @@ console.log(currentY)
     y -=15;
 
     this._drawText("TERM OF PAYMENT ", 40, y, fontSize);
-    // this._drawText(": "+ this.data.payment_term, 140, y, fontSize);
-    const payment_term = this._splitText(
-      ": "+this.data.payment_term,
-      400,       
-      this.font,
-      fontSize
-    );
+    this._drawText(": "+ this.data.payment_term, 140, y, fontSize);
+    // const payment_term = this._splitText(
+    //   ": "+this.data.payment_term,
+    //   400,       
+    //   this.font,
+    //   fontSize
+    // );
 
-    payment_term.forEach((line, index) => {
-      if(index > 0){
-          y -= 15;
-      } 
-      this._drawText(
-        line,
-        140,
-        y,
-        fontSize
-      );
-    }); 
+    // payment_term.forEach((line, index) => {
+    //   if(index > 0){
+    //       y -= 15;
+    //   } 
+    //   this._drawText(
+    //     line,
+    //     140,
+    //     y,
+    //     fontSize
+    //   );
+    // }); 
 
 
 
@@ -1172,25 +1176,25 @@ console.log(currentY)
     
     leftY -= lineGap;
     this._drawText("TERM OF PAYMENT :", leftX, leftY, labelSize, false);
-    // this._drawText(this.data.payment_term, valueX, leftY, valueSize);
-    const payment_term = this._splitText(
-        this.data.payment_term,
-        200,       
-        this.font,
-        valueSize
-    );
+    this._drawText(this.data.payment_term, valueX, leftY, valueSize);
+    // const payment_term = this._splitText(
+    //     this.data.payment_term,
+    //     200,       
+    //     this.font,
+    //     valueSize
+    // );
 
-    payment_term.forEach((line, index) => {
-      if(index > 0){
-          leftY -= lineGap;
-      }
-      this._drawText(
-        line,
-        valueX+10,
-        leftY,
-        valueSize
-      );
-    }); 
+    // payment_term.forEach((line, index) => {
+    //   if(index > 0){
+    //       leftY -= lineGap;
+    //   }
+    //   this._drawText(
+    //     line,
+    //     valueX+10,
+    //     leftY,
+    //     valueSize
+    //   );
+    // }); 
 
     leftY -= lineGap;
     this._drawText("SHIPMENT BY :", leftX, leftY, labelSize, false);
@@ -1220,8 +1224,8 @@ console.log(currentY)
 
 
     rightY = leftY + (lineGap * 2)
-    if(this.data.invoice_due_date != "" && this.data.invoice_due_date != null) {
-      const due_date_obj = new Date(this.data.invoice_due_date);
+    if(this.data.due_date != "" && this.data.due_date != null) {
+      const due_date_obj = new Date(this.data.due_date);
 
       const due_date_formattedDateUTC = due_date_obj.toLocaleDateString('en-US', {
         month: 'long',
@@ -1307,16 +1311,16 @@ console.log(currentY)
   
       // this._drawText(item.invoice_description || "", 40, currentY - 15, fontSize);
 
-      const invoice_description = this._splitText(
-          item.invoice_description,
+      const product_name = this._splitText(
+          item.product_name,
           250,       
           this.font,
           fontSize
       );
 
       let a = 0
-      console.log(invoice_description)
-      invoice_description.forEach((line, index) => {
+      console.log(product_name)
+      product_name.forEach((line, index) => {
           a -= 15;
           this._drawText(
             line,
@@ -1353,26 +1357,7 @@ console.log(currentY)
       currentY -= rowHeight -a;
       // this._drawText(item.invoice_description || "", 40, currentY - 15, fontSize);
 
-      if(item.invoice_description2 != "" && item.invoice_description2 != null){
-        currentY -= rowHeight;
-        this._drawText( item.invoice_description2, 40, currentY , fontSize);
-      }
-      if(item.invoice_description3 != "" && item.invoice_description3 != null){
-        currentY -= rowHeight;
-        this._drawText( item.invoice_description3, 40, currentY , fontSize);
-      }
-      if(item.invoice_description4 != "" && item.invoice_description4 != null){
-        currentY -= rowHeight;
-        this._drawText( item.invoice_description4, 40, currentY , fontSize);
-      }
-      if(item.invoice_description5 != "" && item.invoice_description5 != null){
-        currentY -= rowHeight;
-        this._drawText( item.invoice_description5, 40, currentY , fontSize);
-      }
-      if(item.invoice_description6 != "" && item.invoice_description6 != null){
-        currentY -= rowHeight;
-        this._drawText( item.invoice_description6, 40, currentY , fontSize);
-      }
+
       y = currentY
 
     }
@@ -1834,28 +1819,28 @@ console.log(currentY)
     y +=15;
     this._drawText("DESCRIPTION OF GOODS : ", leftX, y , fontSize, false);
     for (const item of this.data.line_items) {
-      this._drawText( item.invoice_description, valueX, y , fontSize);
-      if(item.invoice_description2 != "" && item.invoice_description2 != null){
-        y -=15;
-        this._drawText( item.invoice_description2, valueX, y , fontSize);
-      }
-      if(item.invoice_description3 != "" && item.invoice_description3 != null){
-        y -=15;
-        this._drawText( item.invoice_description3, valueX, y , fontSize);
-      }
-      if(item.invoice_description4 != "" && item.invoice_description4 != null){
-        y -=15;
-        this._drawText( item.invoice_description4, valueX, y , fontSize);
-      }
-      if(item.invoice_description5 != "" && item.invoice_description5 != null){
-        y -=15;
-        this._drawText( item.invoice_description5, valueX, y , fontSize);
-      }
-      if(item.invoice_description6 != "" && item.invoice_description6 != null){
-        y -=15;
-        this._drawText( item.invoice_description6, valueX, y , fontSize);
-      }
-      y -=15;
+      // this._drawText( item.invoice_description, valueX, y , fontSize);
+      const product_name = this._splitText(
+          item.product_name,
+          350,       
+          this.font,
+          fontSize
+      );
+
+      let a = 0
+      console.log(product_name)
+      product_name.forEach((line, index) => {
+         
+          this._drawText(
+            line,
+            valueX,
+            y+a,
+            fontSize
+        );
+         a -= 15;
+      }); 
+     
+      y -=-a;
     }
     
     
@@ -2015,7 +2000,7 @@ console.log(currentY)
 
     y -=15;
     this._drawText("GROSS WEIGHT OF EACH CONTAINER : ", leftX, y , fontSize, false);
-    this._drawText( Number(this.data.gross_weight_per_container).toLocaleString('en-US', {
+    this._drawText( Number(this.data.gross_weight_of_each_container).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       }) +" KGS." , valueX, y , fontSize);
