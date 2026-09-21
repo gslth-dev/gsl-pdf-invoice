@@ -1079,10 +1079,10 @@ class InvoiceGenerator {
       this._drawText(": "+ this.data.expiry_date_of_lc, 140, y, fontSize);
     }
 
-    if(this.data.tolerace != "" && this.data.tolerace != null) {
+    if(this.data.tolerance != "" && this.data.tolerance != null) {
       y -=15;
       this._drawText("TOLERANCE", 40, y, fontSize);
-      this._drawText(": "+ this.data.tolerace, 140, y, fontSize);
+      this._drawText(": "+ this.data.tolerance, 140, y, fontSize);
     }
     y -=15;
 
