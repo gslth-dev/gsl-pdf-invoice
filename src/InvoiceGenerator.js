@@ -242,7 +242,7 @@ class InvoiceGenerator {
     leftY -= lineGap;
     this._drawText("TERM OF PAYMENT :", leftX, leftY, labelSize, false);
     
-    this._drawText(this.data.payment_term, valueX, leftY, valueSize);
+    this._drawText(this.data.payment_term, valueX+5, leftY, valueSize);
 
     // const payment_term = this._splitText(
     //     this.data.payment_term,
@@ -293,6 +293,7 @@ class InvoiceGenerator {
 
 
     rightY = leftY + (lineGap * 2)
+    console.log("this.data.due_date",this.data.due_date)
     if(this.data.due_date != "" && this.data.due_date != null) {
       const due_date_obj = new Date(this.data.due_date);
 
@@ -380,23 +381,28 @@ class InvoiceGenerator {
 
       // this._drawText(item.invoice_description || "", 40, currentY - 15, fontSize);
 
-      const product_name = this._splitText(
-          item.product_name,
+      const lines = item.product_name.split('\n');
+      console.log("lines",lines)
+      const numberOfLines = lines.length; 
+      
+      let a = 0
+      lines.forEach((line, index) => {
+        const product_name = this._splitText(
+          line,
           250,       
           this.font,
           fontSize
-      );
-
-      let a = 0
-      console.log(product_name)
-      product_name.forEach((line, index) => {
-          a -= 15;
-          this._drawText(
-            line,
-            40,
-            currentY+a,
-            fontSize
         );
+
+        product_name.forEach((l, i) => {
+            a -= 15;
+            this._drawText(
+              l,
+              40,
+              currentY+a,
+              fontSize
+          );
+        }); 
       }); 
 
 
@@ -425,7 +431,7 @@ class InvoiceGenerator {
       console.log(currentY)
 
       // ลดพิกัด Y ลงไปสำหรับรายการถัดไป
-      currentY -= rowHeight - a;
+      currentY -= 0 - a;
 
 
       console.log(currentY)
@@ -1176,7 +1182,7 @@ class InvoiceGenerator {
     
     leftY -= lineGap;
     this._drawText("TERM OF PAYMENT :", leftX, leftY, labelSize, false);
-    this._drawText(this.data.payment_term, valueX, leftY, valueSize);
+    this._drawText(this.data.payment_term, valueX+5, leftY, valueSize);
     // const payment_term = this._splitText(
     //     this.data.payment_term,
     //     200,       
@@ -1223,6 +1229,7 @@ class InvoiceGenerator {
 
 
 
+    console.log("this.data.due_date ",this.data.due_date )
     rightY = leftY + (lineGap * 2)
     if(this.data.due_date != "" && this.data.due_date != null) {
       const due_date_obj = new Date(this.data.due_date);
@@ -1311,23 +1318,28 @@ class InvoiceGenerator {
   
       // this._drawText(item.invoice_description || "", 40, currentY - 15, fontSize);
 
-      const product_name = this._splitText(
-          item.product_name,
+      const lines = item.product_name.split('\n');
+      console.log("lines",lines)
+      const numberOfLines = lines.length; 
+      
+      let a = 0
+      lines.forEach((line, index) => {
+        const product_name = this._splitText(
+          line,
           250,       
           this.font,
           fontSize
-      );
-
-      let a = 0
-      console.log(product_name)
-      product_name.forEach((line, index) => {
-          a -= 15;
-          this._drawText(
-            line,
-            40,
-            currentY+a,
-            fontSize
         );
+
+        product_name.forEach((l, i) => {
+            a -= 15;
+            this._drawText(
+              l,
+              40,
+              currentY+a,
+              fontSize
+          );
+        }); 
       }); 
 
       this._drawText((item.bag_qty?item.bag_qty:" ") +" x "+(item.packaging_type?item.packaging_type:"")+" KGS = "+(item.quantity?item.quantity:" ") + " MT" || "0.00", 320, currentY - 15, fontSize);
@@ -1354,7 +1366,7 @@ class InvoiceGenerator {
       
 
       // ลดพิกัด Y ลงไปสำหรับรายการถัดไป
-      currentY -= rowHeight -a;
+      currentY -= 0 -a;
       // this._drawText(item.invoice_description || "", 40, currentY - 15, fontSize);
 
 
@@ -1820,30 +1832,55 @@ class InvoiceGenerator {
     this._drawText("DESCRIPTION OF GOODS : ", leftX, y , fontSize, false);
     for (const item of this.data.line_items) {
       // this._drawText( item.invoice_description, valueX, y , fontSize);
-      const product_name = this._splitText(
-          item.product_name,
+
+      const lines = item.product_name.split('\n');
+      console.log("lines",lines)
+      const numberOfLines = lines.length; 
+      
+      let a = 0
+      lines.forEach((line, index) => {
+        const product_name = this._splitText(
+          line,
           350,       
           this.font,
           fontSize
-      );
-
-      let a = 0
-      console.log(product_name)
-      product_name.forEach((line, index) => {
-         
-          this._drawText(
-            line,
-            valueX,
-            y+a,
-            fontSize
         );
-         a -= 15;
+
+        product_name.forEach((l, i) => {
+            a -= 15;
+            this._drawText(
+              l,
+              valueX,
+              y+a,
+              fontSize
+          );
+        }); 
       }); 
+
+      // const product_name = this._splitText(
+      //     item.product_name,
+      //     350,       
+      //     this.font,
+      //     fontSize
+      // );
+
+      // let a = 0
+      // console.log(product_name)
+      // product_name.forEach((line, index) => {
+         
+      //     this._drawText(
+      //       line,
+      //       valueX,
+      //       y+a,
+      //       fontSize
+      //   );
+      //    a -= 15;
+      // }); 
      
       y -=-a;
     }
     
-    
+    y -=15;
     this._drawText("PACKING CONDITION : ", leftX, y , fontSize, false);
     this._drawText( this.data.packing_remark, valueX, y , fontSize);
 
