@@ -816,7 +816,7 @@ class InvoiceGenerator {
     }
     startY -= 15;
     this._drawText("SHIPPED TO :", leftX, startY, labelSize, false);
-    this._drawText(this.data.shipping_address, valueX-25, startY, valueSize);
+    this._drawText(this.data.shipped_to, valueX-25, startY, valueSize);
 
 
     this._drawText("PI NO.  ", rightLabelX, startrightY, labelSize, false);
