@@ -406,7 +406,10 @@ class InvoiceGenerator {
       }); 
 
 
-      this._drawText((item.bag_qty?item.bag_qty:" ") +" x "+(item.packaging_type?item.packaging_type:"")+" KGS = "+(item.quantity?item.quantity:" ") + " MT" || "0.00", 320, currentY - 15, fontSize);
+      this._drawText((item.bag_qty?item.bag_qty:" ") +" x "+(item.packaging_type?item.packaging_type:"")+" KGS = "+(item.quantity?Number(item.quantity).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }):" ") + " MT" || "0.00", 320, currentY - 15, fontSize);
 
       this._drawText(Number(item.unit_price).toLocaleString('en-US', {
         minimumFractionDigits: 2,
@@ -891,16 +894,16 @@ class InvoiceGenerator {
 
       this._drawText(index, 45, currentY - 15, fontSize);
 
-       const product_name = this._splitText(
-          item.product_name,
+       const invoice_description = this._splitText(
+          item.invoice_description,
           250,       
           this.font,
           fontSize
       );
 
       let a = 0
-      console.log(product_name)
-      product_name.forEach((line, index) => {
+      console.log(invoice_description)
+      invoice_description.forEach((line, index) => {
           a -= 15;
           this._drawText(
             line,
@@ -912,8 +915,15 @@ class InvoiceGenerator {
 
       // this._drawText((item.description?item.description:"") + " " + (item.product_name?item.product_name:"")|| "", 70, currentY - 15, fontSize);
 
-      this._drawText((item.bag_qty?item.bag_qty:"") +" x "+(item.packaging_type?item.packaging_type:"")+" KGS = "+(item.quantity ?item.quantity :"")+ " MT" || "0.00", 320, currentY - 15, fontSize);
-      this._drawText(item.unit_price || "0.00", 450, currentY - 15, fontSize);
+      this._drawText((item.bag_qty?item.bag_qty:"") +" x "+(item.packaging_type?item.packaging_type:"")+" KGS = "+(item.quantity ?Number(item.quantity).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }) :"")+ " MT" || "0.00", 320, currentY - 15, fontSize);
+      // this._drawText(item.unit_price || "0.00", 450, currentY - 15, fontSize);
+      this._drawText(Number(item.unit_price).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }) || "0.00", 450, currentY - 15, fontSize)
 
       const amountText =  Number(item.total_amount).toLocaleString('en-US', {
         minimumFractionDigits: 2,
@@ -930,14 +940,9 @@ class InvoiceGenerator {
       // วาด Line Amount
       this._drawText(amountText, amountX, currentY - 15, fontSize);
 
-      this.page.drawLine({
-        start: { x: 500, y: currentY - 20 },
-        end: { x: 555, y: currentY - 20 },
-        thickness: 1,
-      });
-
+      
       // ลดพิกัด Y ลงไปสำหรับรายการถัดไป
-      currentY -= rowHeight - a;
+      currentY -= 0 - a;
 
 
       console.log(currentY)
@@ -946,10 +951,16 @@ class InvoiceGenerator {
 
 
     }
-
     y = y+15
+    this.page.drawLine({
+      start: { x: 500, y: y - 20 },
+      end: { x: 555, y: y - 20 },
+      thickness: 1,
+    });
 
-    const totalText = 'TOTAL ' + this.data.delivery_terms;
+    
+
+    const totalText = 'TOTAL ' + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
     textWidth = 0;
     let amountX = this.page.getWidth() - 100; // ค่า default ถ้าไม่มีข้อความ
 
@@ -1017,32 +1028,56 @@ class InvoiceGenerator {
 
     
     y -=15;
-    this._drawText("PACKING ", 40, y, fontSize);
-    this._drawText(": " + this.data.packing_remark , 85, y, fontSize);
+    this._drawText("PACKAING ", 40, y, fontSize);
+    this._drawText(": " + this.data.packing_remark , 140, y, fontSize);
+    if(this.data.remark != null && this.data.remark != "") {
+      y -=15;
+      this._drawText(": " +this.data.remark , 140, y, fontSize);
+    }
     if(this.data.packing_remark2 != null && this.data.packing_remark2 != "") {
       y -=15;
-      this._drawText(this.data.packing_remark2 , 85, y, fontSize);
+      this._drawText(": " +this.data.packing_remark2 , 140, y, fontSize);
+    }
+    if(this.data.remark2 != null && this.data.remark2 != "") {
+      y -=15;
+      this._drawText(": " +this.data.remark2 , 140, y, fontSize);
     }
     if(this.data.packing_remark3 != null && this.data.packing_remark3 != "") {
       y -=15;
-      this._drawText(this.data.packing_remark3 , 85, y, fontSize);
+      this._drawText(": " +this.data.packing_remark3 , 140, y, fontSize);
+    }
+    if(this.data.remark3 != null && this.data.remark3 != "") {
+      y -=15;
+      this._drawText(": " +this.data.remark3 , 140, y, fontSize);
     }
     if(this.data.packing_remark4 != null && this.data.packing_remark4 != "") {
       y -=15;
-      this._drawText(this.data.packing_remark4 , 85, y, fontSize);
+      this._drawText(": " +this.data.packing_remark4 , 140, y, fontSize);
+    }
+    if(this.data.remark4 != null && this.data.remark4 != "") {
+      y -=15;
+      this._drawText(": " +this.data.remark4 , 140, y, fontSize);
     }
     if(this.data.packing_remark5 != null && this.data.packing_remark5 != "") {
       y -=15;
-      this._drawText(this.data.packing_remark5 , 85, y, fontSize);
+      this._drawText(": " +this.data.packing_remark5 , 140, y, fontSize);
     }
+    if(this.data.remark5 != null && this.data.remark5 != "") {
+      y -=15;
+      this._drawText(": " +this.data.remark5 , 140, y, fontSize);
+    }
+
+    y -=15;
+    this._drawText("DELIVERY ", 40, y, fontSize);
+    this._drawText(": BY SEA FROM ANY THAILAND PORTS TO" , 140, y, fontSize);
     
     y -=15;
-    if(this.data.delivery_terms == "VISAKHAPATNAM (VIZAG SEAPORT), INDIA" || this.data.delivery_terms == "SURABAYA, INDONESIA" || this.data.delivery_terms == "TAIWAN" || this.data.delivery_terms == "HO CHI MINH, VIETNAM" || this.data.delivery_terms == "NHAVA SHEVA, INDIA" || this.data.delivery_terms == "CHENNAI PORT, INDIA" || this.data.delivery_terms == "YANGZHOU / BEIHAI, CHINA") {
-      this._drawText("DELIVERY", 40, y, fontSize);
+    // if(this.data.delivery_terms == "VISAKHAPATNAM (VIZAG SEAPORT), INDIA" || this.data.delivery_terms == "SURABAYA, INDONESIA" || this.data.delivery_terms == "TAIWAN" || this.data.delivery_terms == "HO CHI MINH, VIETNAM" || this.data.delivery_terms == "NHAVA SHEVA, INDIA" || this.data.delivery_terms == "CHENNAI PORT, INDIA" || this.data.delivery_terms == "YANGZHOU / BEIHAI, CHINA") {
+    //   this._drawText("DELIVERY", 40, y, fontSize);
 
-      this._drawText(": BY SEA FROM ANY THAILAND PORTS TO " + this.data.delivery_terms, 140, y, fontSize);
-      y -=15;
-    } 
+    //   this._drawText(": BY SEA FROM ANY THAILAND PORTS TO " + this.data.delivery_terms, 140, y, fontSize);
+    //   y -=15;
+    // } 
     
 
     this._drawText("SHIPMENT", 40, y, fontSize);
@@ -1092,28 +1127,31 @@ class InvoiceGenerator {
     }
     y -=15;
 
-    this._drawText("BANK NAME ", 40, y, fontSize);
-    this._drawText(": "+ this.data.bank_name, 140, y, fontSize);
+    if(this.data.invoice_type == "performa_invoice") {
+      this._drawText("BANK NAME ", 40, y, fontSize);
+      this._drawText(": "+ this.data.bank_name, 140, y, fontSize);
 
-    y -=15;
+      y -=15;
 
-    this._drawText("BANK ADDRESS ", 40, y, fontSize);
-    this._drawText(": "+ this.data.bank_address, 140, y, fontSize);
+      this._drawText("BANK ADDRESS ", 40, y, fontSize);
+      this._drawText(": "+ this.data.bank_address, 140, y, fontSize);
 
-    y -=15;
+      y -=15;
 
-    this._drawText("ACCOUNT NAME ", 40, y, fontSize);
-    this._drawText(": "+ this.data.account_name, 140, y, fontSize);
+      this._drawText("ACCOUNT NAME ", 40, y, fontSize);
+      this._drawText(": "+ this.data.account_name, 140, y, fontSize);
 
-    y -=15;
+      y -=15;
 
-    this._drawText("ACCOUNT NO ", 40, y, fontSize);
-    this._drawText(": "+ this.data.account_number, 140, y, fontSize);
+      this._drawText("ACCOUNT NO ", 40, y, fontSize);
+      this._drawText(": "+ this.data.account_number, 140, y, fontSize);
 
-    y -=15;
+      y -=15;
 
-    this._drawText("S.W.I.F.T ", 40, y, fontSize);
-    this._drawText(": "+ (this.data.swift?this.data.swift:""), 140, y, fontSize);
+      this._drawText("S.W.I.F.T ", 40, y, fontSize);
+      this._drawText(": "+ (this.data.swift?this.data.swift:""), 140, y, fontSize);
+    }
+    
 
 
     y -=50;
@@ -1342,7 +1380,10 @@ class InvoiceGenerator {
         }); 
       }); 
 
-      this._drawText((item.bag_qty?item.bag_qty:" ") +" x "+(item.packaging_type?item.packaging_type:"")+" KGS = "+(item.quantity?item.quantity:" ") + " MT" || "0.00", 320, currentY - 15, fontSize);
+      this._drawText((item.bag_qty?item.bag_qty:" ") +" x "+(item.packaging_type?item.packaging_type:"")+" KGS = "+(item.quantity?Number(item.quantity).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }):" ") + " MT" || "0.00", 320, currentY - 15, fontSize);
       this._drawText(Number(item.unit_price).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
@@ -1720,8 +1761,6 @@ class InvoiceGenerator {
   
     this._drawText("SOLD TO : ", leftX, startY, labelSize, false);
     this._drawText(this.data.customer, valueX-30, startY, valueSize);
-
-   
 
     startY -= 15;
     this._drawText(this.data.address1, valueX-30, startY, valueSize);
