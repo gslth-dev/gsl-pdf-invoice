@@ -1805,12 +1805,12 @@ class InvoiceGenerator {
     this._drawText("INVOICE NO. :  ", rightLabelX, startYright, labelSize, false);
     this._drawText(this.data.invoice_number, rightValueX, startYright , valueSize);
 
-    if(this.data.consignee != null && this.data.consignee !="") {
+    if(this.data.consignee1 != null && this.data.consignee1 !="") {
       startYright -=15
       this._drawText("CONSIGNEE :  ", rightLabelX, startYright, labelSize, false);
 
       const consignee = this._splitText(
-          this.data.consignee,
+          this.data.consignee1,
           150,       
           this.font,
           valueSize
