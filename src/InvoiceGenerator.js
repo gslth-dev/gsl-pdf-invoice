@@ -896,7 +896,7 @@ class InvoiceGenerator {
 
        const invoice_description = this._splitText(
           item.invoice_description,
-          250,       
+          230,       
           this.font,
           fontSize
       );
@@ -907,7 +907,7 @@ class InvoiceGenerator {
           a -= 15;
           this._drawText(
             line,
-            40,
+            65,
             currentY+a,
             fontSize
           );
