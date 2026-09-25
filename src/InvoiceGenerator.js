@@ -294,7 +294,7 @@ class InvoiceGenerator {
 
     rightY = leftY + (lineGap * 2)
     console.log("this.data.due_date",this.data.due_date)
-    if(this.data.due_date != "" && this.data.due_date != null) {
+    if(this.data.show_due_date == true) {
       const due_date_obj = new Date(this.data.due_date);
 
       const due_date_formattedDateUTC = due_date_obj.toLocaleDateString('en-US', {
@@ -1269,7 +1269,7 @@ class InvoiceGenerator {
 
     console.log("this.data.due_date ",this.data.due_date )
     rightY = leftY + (lineGap * 2)
-    if(this.data.due_date != "" && this.data.due_date != null) {
+    if(this.data.show_due_date == true) {
       const due_date_obj = new Date(this.data.due_date);
 
       const due_date_formattedDateUTC = due_date_obj.toLocaleDateString('en-US', {
