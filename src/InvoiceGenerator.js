@@ -514,7 +514,7 @@ class InvoiceGenerator {
       });
 
       y -= 15
-      text = "TOTAL " + this.data.delivery_terms ;
+      text = "TOTAL "  + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
       textWidth = this.font.widthOfTextAtSize(text, fontSize);
       x = this.page.getWidth() - textWidth - 120;
       this._drawText(text , x, y, fontSize);
@@ -1484,7 +1484,7 @@ class InvoiceGenerator {
       });
 
       y -= 15
-      text = "TOTAL " + this.data.delivery_terms ;
+      text = "TOTAL "  + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
       textWidth = this.font.widthOfTextAtSize(text, fontSize);
       x = this.page.getWidth() - textWidth - 120;
       this._drawText(text , x, y, fontSize);
