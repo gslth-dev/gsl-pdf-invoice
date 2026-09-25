@@ -1028,7 +1028,7 @@ class InvoiceGenerator {
 
     
     y -=15;
-    this._drawText("PACKAING ", 40, y, fontSize);
+    this._drawText("PACKAGING ", 40, y, fontSize);
     this._drawText(": " + this.data.packing_remark , 140, y, fontSize);
     if(this.data.remark != null && this.data.remark != "") {
       y -=15;
@@ -1069,16 +1069,9 @@ class InvoiceGenerator {
 
     y -=15;
     this._drawText("DELIVERY ", 40, y, fontSize);
-    this._drawText(": BY SEA FROM ANY THAILAND PORTS TO" , 140, y, fontSize);
+    this._drawText(": BY SEA FROM ANY THAILAND PORTS TO " + this.data.shipped_to , 140, y, fontSize);
     
     y -=15;
-    // if(this.data.delivery_terms == "VISAKHAPATNAM (VIZAG SEAPORT), INDIA" || this.data.delivery_terms == "SURABAYA, INDONESIA" || this.data.delivery_terms == "TAIWAN" || this.data.delivery_terms == "HO CHI MINH, VIETNAM" || this.data.delivery_terms == "NHAVA SHEVA, INDIA" || this.data.delivery_terms == "CHENNAI PORT, INDIA" || this.data.delivery_terms == "YANGZHOU / BEIHAI, CHINA") {
-    //   this._drawText("DELIVERY", 40, y, fontSize);
-
-    //   this._drawText(": BY SEA FROM ANY THAILAND PORTS TO " + this.data.delivery_terms, 140, y, fontSize);
-    //   y -=15;
-    // } 
-    
 
     this._drawText("SHIPMENT", 40, y, fontSize);
     this._drawText(": " + this.data.shipment, 140, y, fontSize);
