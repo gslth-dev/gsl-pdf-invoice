@@ -895,7 +895,7 @@ class InvoiceGenerator {
       this._drawText(index, 45, currentY - 15, fontSize);
 
        const invoice_description = this._splitText(
-          item.invoice_description,
+          item.configuration + " " + item.product_name,
           230,       
           this.font,
           fontSize
