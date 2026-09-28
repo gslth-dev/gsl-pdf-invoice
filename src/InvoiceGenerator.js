@@ -792,7 +792,7 @@ class InvoiceGenerator {
     const lineGap = 15; 
   
     this._drawText("SOLD TO : ", leftX, startY, labelSize, false);
-    this._drawText(this.data.customer, valueX-30, startY, valueSize);
+    this._drawText(this.data.customer_name, valueX-30, startY, valueSize);
 
     startY -= 15;
     this._drawText(this.data.address1, valueX-30, startY, valueSize);
@@ -1753,7 +1753,7 @@ class InvoiceGenerator {
     const lineGap = 15; 
   
     this._drawText("SOLD TO : ", leftX, startY, labelSize, false);
-    this._drawText(this.data.customer, valueX-30, startY, valueSize);
+    this._drawText(this.data.customer_name, valueX-30, startY, valueSize);
 
     startY -= 15;
     this._drawText(this.data.address1, valueX-30, startY, valueSize);
