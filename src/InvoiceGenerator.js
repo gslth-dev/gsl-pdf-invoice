@@ -823,7 +823,7 @@ class InvoiceGenerator {
 
 
     this._drawText("PI NO.  ", rightLabelX, startrightY, labelSize, false);
-    this._drawText(": " +this.data.contract_pi_no, rightValueX, startrightY , valueSize);
+    this._drawText(": " +this.data.pi_number, rightValueX, startrightY , valueSize);
 
     // this._drawText("DATE :", rightLabelX+100, startY - (lineGap * 0.5), labelSize, false);
     // this._drawText(invoice_date_formattedDateUTC, rightLabelX+135, startY - (lineGap * 0.5), valueSize);
