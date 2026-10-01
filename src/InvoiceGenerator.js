@@ -452,7 +452,7 @@ class InvoiceGenerator {
     });
 
     y = y+15
-    text = "TOTAL FOB " + this.data.loading_port;
+    text = 'TOTAL ' + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
     x = this.page.getWidth() - textWidth - 120;
     this._drawText(text , x, y - 30, fontSize);
@@ -811,11 +811,20 @@ class InvoiceGenerator {
     }
     if(this.data.address5){
       startY -= 15;
-      this._drawText(this.data.address5, valueX-30, startY, valueSize);
+      let text = this.data.address5
+      if (this.data.customer_name =="ELIXA TECHNOLOGIES PVT LTD") {
+        text = text.replace("PAN NO. AAECE5411E", "");
+      }
+      this._drawText(text, valueX-30, startY, valueSize);
     }
     if(this.data.address6){
       startY -= 15;
-      this._drawText(this.data.address6, valueX-30, startY, valueSize);
+      
+      let text = this.data.address6
+      if (this.data.customer_name =="ELIXA TECHNOLOGIES PVT LTD") {
+        text = text.replace("PAN NO. AAECE5411E", "");
+      }
+      this._drawText(text, valueX-30, startY, valueSize);
     }
     startY -= 15;
     this._drawText("SHIPPED TO :", leftX, startY, labelSize, false);
@@ -960,7 +969,10 @@ class InvoiceGenerator {
 
     
 
-    const totalText = 'TOTAL ' + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
+    let totalText = 'TOTAL ' + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
+    if(this.data.customer_name == "MITACHARM CORPORATION") {
+        totalText = 'TOTAL ' + this.data.delivery_terms;
+    }
     textWidth = 0;
     let amountX = this.page.getWidth() - 100; // ค่า default ถ้าไม่มีข้อความ
 
@@ -1069,7 +1081,12 @@ class InvoiceGenerator {
 
     y -=15;
     this._drawText("DELIVERY ", 40, y, fontSize);
-    this._drawText(": BY SEA FROM ANY THAILAND PORTS TO " + this.data.shipped_to , 140, y, fontSize);
+    if( this.data.customer_name == "MITACHARM CORPORATION") {
+      this._drawText(": BY SEA FROM ANY THAILAND PORTS TO ANY TAIWAN PORT" , 140, y, fontSize);
+    } else {
+      this._drawText(": BY SEA FROM ANY THAILAND PORTS TO " + this.data.shipped_to , 140, y, fontSize);
+    }
+    
     
     y -=15;
 
@@ -1103,14 +1120,22 @@ class InvoiceGenerator {
     if(this.data.last_of_ship_ment != "" && this.data.last_of_ship_ment != null) {
       y -=15;
       this._drawText("LASTEST OF SHIPMENT", 40, y, fontSize);
-      this._drawText(": "+ this.data.last_of_ship_ment, 140, y, fontSize);
+      this._drawText(": "+ new Date(this.data.last_of_ship_ment).toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "long",
+          year: "numeric"
+      }).toUpperCase(), 140, y, fontSize);
     }
 
     
     if(this.data.expiry_date_of_lc != "" && this.data.expiry_date_of_lc != null) {
       y -=15;
       this._drawText("EXPIRY DATE OF L/C", 40, y, fontSize);
-      this._drawText(": "+ this.data.expiry_date_of_lc, 140, y, fontSize);
+      this._drawText(": "+ new Date(this.data.expiry_date_of_lc).toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "long",
+          year: "numeric"
+      }).toUpperCase(), 140, y, fontSize);
     }
 
     if(this.data.tolerance != "" && this.data.tolerance != null) {
@@ -1415,7 +1440,7 @@ class InvoiceGenerator {
     });
 
     y = y+15
-    text = "TOTAL FOB " + this.data.loading_port;
+    text = 'TOTAL ' + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
     x = this.page.getWidth() - textWidth - 120;
     this._drawText(text , x, y - 30, fontSize);
