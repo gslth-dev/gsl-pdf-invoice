@@ -812,23 +812,22 @@ class InvoiceGenerator {
     if(this.data.address5){
       startY -= 15;
       let text = this.data.address5
-      if (this.data.customer_name == "ELIXA TECHNOLOGIES PVT LTD") {
-        console.log("text add5 ",text)
+      if (this.data.customer_name?.toUpperCase().includes("ELIXA")) {
         text = text.replace("PAN NO. AAECE5411E,", "");
-        console.log("text add5 ",text)
+      } else {
+        this._drawText(text, valueX-30, startY, valueSize);
       }
-      this._drawText(text, valueX-30, startY, valueSize);
+      
     }
     if(this.data.address6){
       startY -= 15;
       
       let text = this.data.address6
-      if (this.data.customer_name =="ELIXA TECHNOLOGIES PVT LTD") {
-        console.log("text add6 ",text)
+      if (this.data.customer_name?.toUpperCase().includes("ELIXA")) {
         text = text.replace("IEC CODE: AAECE5411E", "");
-        console.log("text add6 ",text)
+      } else {
+        this._drawText(text, valueX-30, startY, valueSize);
       }
-      this._drawText(text, valueX-30, startY, valueSize);
     }
     startY -= 15;
     this._drawText("SHIPPED TO :", leftX, startY, labelSize, false);
