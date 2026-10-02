@@ -970,7 +970,7 @@ class InvoiceGenerator {
     
 
     let totalText = 'TOTAL ' + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
-    if(this.data.customer_name == "MITACHARM CORPORATION"  ||  this.data.customer_name == "ELIXA TECHNOLOGIES PVT LTD") {
+    if(this.data.customer_name == "MITACHARM CORPORATION"  ||  this.data.customer_name == "ITC LIMITED") {
         totalText = 'TOTAL ' + this.data.delivery_terms;
     }
     textWidth = 0;
