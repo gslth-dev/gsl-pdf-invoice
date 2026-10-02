@@ -812,8 +812,8 @@ class InvoiceGenerator {
     if(this.data.address5){
       startY -= 15;
       let text = this.data.address5
-      if (this.data.customer_name =="ELIXA TECHNOLOGIES PVT LTD") {
-        text = text.replace("PAN NO. AAECE5411E", "");
+      if (this.data.customer_name == "ELIXA TECHNOLOGIES PVT LTD") {
+        text = text.replace("PAN NO. AAECE5411E", " ");
       }
       this._drawText(text, valueX-30, startY, valueSize);
     }
@@ -822,7 +822,7 @@ class InvoiceGenerator {
       
       let text = this.data.address6
       if (this.data.customer_name =="ELIXA TECHNOLOGIES PVT LTD") {
-        text = text.replace("PAN NO. AAECE5411E", "");
+        text = text.replace("IEC CODE: AAECE5411E", " ");
       }
       this._drawText(text, valueX-30, startY, valueSize);
     }
