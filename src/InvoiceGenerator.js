@@ -205,7 +205,7 @@ class InvoiceGenerator {
 
     leftY -= lineGap
     this._drawText("SALE ORDER NO. :", leftX, leftY, labelSize, false);
-    this._drawText(this.data.order_number, valueX, leftY, valueSize);
+    this._drawText(this.data.es_no, valueX, leftY, valueSize);
 
     leftY -= lineGap
     this._drawText("CONTRACT NO. :", leftX, leftY, labelSize, false);
@@ -213,9 +213,10 @@ class InvoiceGenerator {
 
     leftY -= lineGap
     this._drawText("BILL TO :", leftX, leftY, labelSize, false);
-    
-    
-     this._drawText(this.data.address1, valueX-30, leftY, valueSize);
+    this._drawText(this.data.customer_name.toUpperCase(), valueX-30, leftY, valueSize);
+
+    leftY -= lineGap;
+    this._drawText(this.data.address1, valueX-30, leftY, valueSize);
 
     if(this.data.address2){
       leftY -= lineGap;
@@ -240,6 +241,7 @@ class InvoiceGenerator {
 
    
     leftY -= lineGap;
+    let term_line = leftY
     this._drawText("TERM OF PAYMENT :", leftX, leftY, labelSize, false);
     
     this._drawText(this.data.payment_term, valueX+5, leftY, valueSize);
@@ -267,7 +269,7 @@ class InvoiceGenerator {
 
     leftY -= lineGap;
     this._drawText("SHIPMENT BY :", leftX, leftY, labelSize, false);
-    this._drawText(this.data.vessel, valueX, leftY, valueSize);
+    this._drawText(this.data.vessel.toUpperCase(), valueX, leftY, valueSize);
 
     leftY -= lineGap;
     this._drawText("FROM :", leftX, leftY, labelSize, false);
@@ -293,6 +295,11 @@ class InvoiceGenerator {
 
 
     rightY = leftY + (lineGap * 2)
+
+    if (rightY == term_line) {
+      rightY += lineGap;
+    }
+
     console.log("this.data.due_date",this.data.due_date)
     if(this.data.show_due_date == true) {
       const due_date_obj = new Date(this.data.due_date);
@@ -310,7 +317,7 @@ class InvoiceGenerator {
     
 
 
-    rightY -= lineGap 
+    rightY -= (lineGap*2)
     const date_etd = new Date(this.data.etd);
 
     const etd_formattedDate = date_etd.toLocaleDateString('en-US', {
@@ -381,9 +388,8 @@ class InvoiceGenerator {
 
       // this._drawText(item.invoice_description || "", 40, currentY - 15, fontSize);
 
-      const lines = item.product_name.split('\n');
-      console.log("lines",lines)
-      const numberOfLines = lines.length; 
+      let lines = item.invoice_description.split('\n');
+      let numberOfLines = lines.length; 
       
       let a = 0
       lines.forEach((line, index) => {
@@ -427,9 +433,148 @@ class InvoiceGenerator {
         textWidth = this.font.widthOfTextAtSize(amountText, fontSize);
         amountX = this.page.getWidth() - textWidth - 40;
       }
-      
-      // วาด Line Amount
+       // วาด Line Amount
       this._drawText(amountText, amountX, currentY - 15, fontSize);
+
+      if(item.invoice_description2 != "") {
+        currentY -=15
+
+        lines = item.invoice_description2.split('\n');
+        numberOfLines = lines.length; 
+        
+        a = 0
+        lines.forEach((line, index) => {
+          const product_name = this._splitText(
+            line,
+            250,       
+            this.font,
+            fontSize
+          );
+
+          product_name.forEach((l, i) => {
+              a -= 15;
+              this._drawText(
+                l,
+                40,
+                currentY+a,
+                fontSize
+            );
+          }); 
+        }); 
+
+      }
+
+      if(item.invoice_description3 != "") {
+        currentY -=15
+        lines = item.invoice_description3.split('\n');
+        numberOfLines = lines.length; 
+        
+        a = 0
+        lines.forEach((line, index) => {
+          const product_name = this._splitText(
+            line,
+            250,       
+            this.font,
+            fontSize
+          );
+
+          product_name.forEach((l, i) => {
+              a -= 15;
+              this._drawText(
+                l,
+                40,
+                currentY+a,
+                fontSize
+            );
+          }); 
+        }); 
+
+      }
+
+      if(item.invoice_description4 != "") {
+        currentY -=15
+        lines = item.invoice_description4.split('\n');
+        numberOfLines = lines.length; 
+        
+        a = 0
+        lines.forEach((line, index) => {
+          const product_name = this._splitText(
+            line,
+            250,       
+            this.font,
+            fontSize
+          );
+
+          product_name.forEach((l, i) => {
+              a -= 15;
+              this._drawText(
+                l,
+                40,
+                currentY+a,
+                fontSize
+            );
+          }); 
+        }); 
+
+      }
+
+      if(item.invoice_description5 != "") {
+        currentY -=15
+        lines = item.invoice_description5.split('\n');
+        numberOfLines = lines.length; 
+        
+        a = 0
+        lines.forEach((line, index) => {
+          const product_name = this._splitText(
+            line,
+            250,       
+            this.font,
+            fontSize
+          );
+
+          product_name.forEach((l, i) => {
+              a -= 15;
+              this._drawText(
+                l,
+                40,
+                currentY+a,
+                fontSize
+            );
+          }); 
+        }); 
+
+      }
+
+      if(item.invoice_description6 != "") {
+        currentY -=15
+        lines = item.invoice_description6.split('\n');
+        numberOfLines = lines.length; 
+        
+        a = 0
+        lines.forEach((line, index) => {
+          const product_name = this._splitText(
+            line,
+            250,       
+            this.font,
+            fontSize
+          );
+
+          product_name.forEach((l, i) => {
+              a -= 15;
+              this._drawText(
+                l,
+                40,
+                currentY+a,
+                fontSize
+            );
+          }); 
+        }); 
+
+      }
+
+      
+      
+     
 
       console.log(currentY)
 
@@ -452,7 +597,19 @@ class InvoiceGenerator {
     });
 
     y = y+15
+
+    // custom subtotal //'TOTAL 
     text = 'TOTAL ' + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
+    if(this.data.customer_name == "MITACHARM CORPORATION"  ||  this.data.customer_name == "ITC LIMITED"  ||  this.data.customer_name == "Sanguan Wongse Japan Co.,Ltd."   ||  this.data.customer_name =="International Additive Concepts Inc.") {
+        text = 'TOTAL ' + this.data.delivery_terms;
+    }
+
+    if(this.data.invoice_type == "customs_invoice") {
+      text = 'TOTAL  FOB' + this.data.loading_port ;
+    }
+
+
+  
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
     x = this.page.getWidth() - textWidth - 120;
     this._drawText(text , x, y - 30, fontSize);
@@ -461,73 +618,86 @@ class InvoiceGenerator {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
+
+    if(this.data.invoice_type == "customs_invoice") {
+      text = Number(this.data.subtotal).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
     x = this.page.getWidth() - textWidth - 40;
 
     y = y - 30
     this._drawText(text, x, y, fontSize);
 
-    if(this.data.freight_cost != 0 && this.data.freight_cost != null) {
-      y -= 15;
-      text = "FREIGHT"
-      textWidth = this.font.widthOfTextAtSize(text, fontSize);
-      x = this.page.getWidth() - textWidth - 120;
-      this._drawText(text, x, y, fontSize);
+    if(this.data.invoice_type == "customs_invoice" ) {
+
+      if(this.data.delivery_terms.slice(0, 3) == 'CFR' || this.data.delivery_terms.slice(0, 3) == 'CIF') {
+        y -= 15;
+        text = "FREIGHT"
+        textWidth = this.font.widthOfTextAtSize(text, fontSize);
+        x = this.page.getWidth() - textWidth - 120;
+        this._drawText(text, x, y, fontSize);
 
 
-      text = Number(this.data.freight_cost).toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-      
-      textWidth = this.font.widthOfTextAtSize(text, fontSize);
-      x = this.page.getWidth() - textWidth - 40;
-      this._drawText(text, x, y, fontSize);
+        text = Number(this.data.freight_cost).toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+        
+        textWidth = this.font.widthOfTextAtSize(text, fontSize);
+        x = this.page.getWidth() - textWidth - 40;
+        this._drawText(text, x, y, fontSize);
 
+      }
+
+      if(this.data.delivery_terms.slice(0, 3) == 'CIF') {
+        y -= 15;
+        text = "INSURANCE"
+        textWidth = this.font.widthOfTextAtSize(text, fontSize);
+        x = this.page.getWidth() - textWidth - 120;
+        this._drawText(text, x, y, fontSize);
+
+
+        text = Number(this.data.insurance_cost).toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+        
+        textWidth = this.font.widthOfTextAtSize(text, fontSize);
+        x = this.page.getWidth() - textWidth - 40;
+        this._drawText(text, x, y, fontSize);
+
+      }
+
+      if(this.data.delivery_terms.slice(0, 3) == 'CFR' || this.data.delivery_terms.slice(0, 3) == 'CIF') {
+        this.page.drawLine({
+          start: { x: 500, y: y - 2 },
+          end: { x: 555, y: y - 2 },
+          thickness: 1,
+          color:  rgb(0, 0, 0),
+        });
+
+        y -= 15
+        text = "TOTAL "  + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
+        textWidth = this.font.widthOfTextAtSize(text, fontSize);
+        x = this.page.getWidth() - textWidth - 120;
+        this._drawText(text , x, y, fontSize);
+
+        text = Number(this.data.total_invoice_amount).toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+        textWidth = this.font.widthOfTextAtSize(text, fontSize);
+        x = this.page.getWidth() - textWidth - 40;
+        this._drawText(text, x, y, fontSize);
+
+      }
     }
 
-    if(this.data.insurance_cost != 0 && this.data.insurance_cost != null) {
-      y -= 15;
-      text = "INSURANCE"
-      textWidth = this.font.widthOfTextAtSize(text, fontSize);
-      x = this.page.getWidth() - textWidth - 120;
-      this._drawText(text, x, y, fontSize);
+   
 
-
-      text = Number(this.data.insurance_cost).toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-      
-      textWidth = this.font.widthOfTextAtSize(text, fontSize);
-      x = this.page.getWidth() - textWidth - 40;
-      this._drawText(text, x, y, fontSize);
-
-    }
-
-    if((this.data.insurance_cost != null && this.data.insurance_cost != 0) || (this.data.freight_cost != null && this.data.freight_cost != 0)) {
-      this.page.drawLine({
-        start: { x: 500, y: y - 2 },
-        end: { x: 555, y: y - 2 },
-        thickness: 1,
-        color:  rgb(0, 0, 0),
-      });
-
-      y -= 15
-      text = "TOTAL "  + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
-      textWidth = this.font.widthOfTextAtSize(text, fontSize);
-      x = this.page.getWidth() - textWidth - 120;
-      this._drawText(text , x, y, fontSize);
-
-      text = Number(this.data.total_invoice_amount).toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-      textWidth = this.font.widthOfTextAtSize(text, fontSize);
-      x = this.page.getWidth() - textWidth - 40;
-      this._drawText(text, x, y, fontSize);
-
-    }
 
     const thickness = 1;      
     const gap = 2;              
@@ -601,11 +771,11 @@ class InvoiceGenerator {
     
 
     y -= 15 
-
-    text = "(TOTAL US DOLLARS " + this._numberToWords(this.data.total_invoice_amount) + " ONLY)" ;
+    y -= 15 
+    text = "(TOTAL US DOLLARS " + this._numberToWords(this.data.total_invoice_amount) + ")" ;
     this._drawText(text, 40, y, fontSize);
 
-    y_end = y-15;
+    y_end = y;
   }
 
   _drawFooter() {
@@ -679,28 +849,28 @@ class InvoiceGenerator {
     }
 
     let count_batch = 0;
-      if(this.data.line_items[0].batch){
-        for (const item of this.data.line_items) {
-        count_batch += item.batch.length 
-      }
+      if(this.data.custom_relations){
+        // for (const item of this.data.custom_relations) {
+        count_batch ++;
+      // }
     }
     
     if(count_batch > 0){
       y -=15;
       this._drawText("BATCH NO : " , 40, y, fontSize);
       let i_batch = 1;
-      for (const item of this.data.line_items) {
-        for (const i of item.batch) {
-          this._drawText(i_batch + ") " + i.batch_no, valueX, y , fontSize);
+      for (const item of this.data.custom_relations) {
+        // for (const i of item.batch) {
+          this._drawText(i_batch + ") " + item.batch_no, valueX, y , fontSize);
           
-          let text_batch = i.bags + " Bags"
+          let text_batch = item.bags + " Bags"
           let textWidth = this.font.widthOfTextAtSize(text_batch, fontSize);
           let BagsX = valueX+130 - textWidth;
 
           this._drawText(text_batch, BagsX, y , fontSize);
           y -=15;
           i_batch++;
-        }
+        // }
       
       }
     } else {
@@ -709,26 +879,44 @@ class InvoiceGenerator {
 
     this._drawText("TOTAL NET WEIGHT :", 40, y, fontSize);
 
-    let text = (this.data.total_net_weight_kg?this.data.total_net_weight_kg:"") + " KGS.";
+    let text = (this.data.total_net_weight_kg?Number(this.data.total_net_weight_kg).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }):"") + " KGS.";
     let textWidth = this.font.widthOfTextAtSize(text, fontSize);
     let x = 200 - textWidth ;
-    this._drawText((this.data.total_net_weight_kg?this.data.total_net_weight_kg:"") + " KGS.", x, y, fontSize);
+    this._drawText((this.data.total_net_weight_kg?Number(this.data.total_net_weight_kg).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }) :"") + " KGS.", x, y, fontSize);
 
     y -=15;
     this._drawText("TOTAL TARE WEIGHT :", 40, y, fontSize);
 
-    text = (this.data.total_tare_weight?this.data.total_tare_weight:" ") + " KGS.";
+    text = (this.data.total_tare_weight?Number(this.data.total_tare_weight).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }) :" ") + " KGS.";
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
     x = 200 - textWidth ;
-    this._drawText((this.data.total_tare_weight?this.data.total_tare_weight:" ") + " KGS.", x, y, fontSize);
+    this._drawText((this.data.total_tare_weight?Number(this.data.total_tare_weight).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }):" ") + " KGS.", x, y, fontSize);
     
     y -=15;
     this._drawText("TOTAL GROSS WEIGHT :", 40, y, fontSize);
     
-    text = (this.data.total_gross_weight?this.data.total_gross_weight:" ") + " KGS.";
+    text = (this.data.total_gross_weight?Number(this.data.total_gross_weight).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }):" ") + " KGS.";
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
     x = 200 - textWidth ;
-    this._drawText((this.data.total_gross_weight?this.data.total_gross_weight:" ") + " KGS.", x, y, fontSize);
+    this._drawText((this.data.total_gross_weight?Number(this.data.total_gross_weight).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }):" ") + " KGS.", x, y, fontSize);
     
     y -=15;
     this._drawText("COUNTRY OF ORIGIN : THAILAND", 40, y, fontSize);
@@ -1211,8 +1399,11 @@ class InvoiceGenerator {
     leftY -= lineGap
     this._drawText("BILL TO :", leftX, leftY, labelSize, false);
     
-    
-      this._drawText(this.data.address1, valueX-30, leftY, valueSize);
+    this._drawText(this.data.customer_name.toUpperCase(), valueX-30, leftY, valueSize);
+
+    leftY -= lineGap;
+
+    this._drawText(this.data.address1, valueX-30, leftY, valueSize);
 
     if(this.data.address2){
       leftY -= lineGap;
@@ -1237,6 +1428,7 @@ class InvoiceGenerator {
 
     
     leftY -= lineGap;
+    let term_line = leftY
     this._drawText("TERM OF PAYMENT :", leftX, leftY, labelSize, false);
     this._drawText(this.data.payment_term, valueX+5, leftY, valueSize);
     // const payment_term = this._splitText(
@@ -1260,7 +1452,7 @@ class InvoiceGenerator {
 
     leftY -= lineGap;
     this._drawText("SHIPMENT BY :", leftX, leftY, labelSize, false);
-    this._drawText(this.data.vessel, valueX, leftY, valueSize);
+    this._drawText(this.data.vessel.toUpperCase(), valueX, leftY, valueSize);
 
     leftY -= lineGap;
     this._drawText("FROM :", leftX, leftY, labelSize, false);
@@ -1287,6 +1479,10 @@ class InvoiceGenerator {
 
     console.log("this.data.due_date ",this.data.due_date )
     rightY = leftY + (lineGap * 2)
+
+    if(rightY == term_line) {
+      rightY += lineGap;
+    }
     if(this.data.show_due_date == true) {
       const due_date_obj = new Date(this.data.due_date);
 
@@ -1303,7 +1499,7 @@ class InvoiceGenerator {
     
 
 
-    rightY -= lineGap 
+    rightY -= (lineGap*2) 
     const date_etd = new Date(this.data.etd);
 
     const etd_formattedDate = date_etd.toLocaleDateString('en-US', {
@@ -1374,9 +1570,9 @@ class InvoiceGenerator {
   
       // this._drawText(item.invoice_description || "", 40, currentY - 15, fontSize);
 
-      const lines = item.product_name.split('\n');
+      let lines = item.invoice_description.split('\n');
       console.log("lines",lines)
-      const numberOfLines = lines.length; 
+      let numberOfLines = lines.length; 
       
       let a = 0
       lines.forEach((line, index) => {
@@ -1422,6 +1618,143 @@ class InvoiceGenerator {
       // วาด Line Amount
       this._drawText(amountText, amountX, currentY - 15, fontSize);
 
+
+       if(item.invoice_description2 != "") {
+        currentY -=15
+
+        lines = item.invoice_description2.split('\n');
+        numberOfLines = lines.length; 
+        
+        a = 0
+        lines.forEach((line, index) => {
+          const product_name = this._splitText(
+            line,
+            250,       
+            this.font,
+            fontSize
+          );
+
+          product_name.forEach((l, i) => {
+              a -= 15;
+              this._drawText(
+                l,
+                40,
+                currentY+a,
+                fontSize
+            );
+          }); 
+        }); 
+
+      }
+
+      if(item.invoice_description3 != "") {
+        currentY -=15
+        lines = item.invoice_description3.split('\n');
+        numberOfLines = lines.length; 
+        
+        a = 0
+        lines.forEach((line, index) => {
+          const product_name = this._splitText(
+            line,
+            250,       
+            this.font,
+            fontSize
+          );
+
+          product_name.forEach((l, i) => {
+              a -= 15;
+              this._drawText(
+                l,
+                40,
+                currentY+a,
+                fontSize
+            );
+          }); 
+        }); 
+
+      }
+
+      if(item.invoice_description4 != "") {
+        currentY -=15
+        lines = item.invoice_description4.split('\n');
+        numberOfLines = lines.length; 
+        
+        a = 0
+        lines.forEach((line, index) => {
+          const product_name = this._splitText(
+            line,
+            250,       
+            this.font,
+            fontSize
+          );
+
+          product_name.forEach((l, i) => {
+              a -= 15;
+              this._drawText(
+                l,
+                40,
+                currentY+a,
+                fontSize
+            );
+          }); 
+        }); 
+
+      }
+
+      if(item.invoice_description5 != "") {
+        currentY -=15
+        lines = item.invoice_description5.split('\n');
+        numberOfLines = lines.length; 
+        
+        a = 0
+        lines.forEach((line, index) => {
+          const product_name = this._splitText(
+            line,
+            250,       
+            this.font,
+            fontSize
+          );
+
+          product_name.forEach((l, i) => {
+              a -= 15;
+              this._drawText(
+                l,
+                40,
+                currentY+a,
+                fontSize
+            );
+          }); 
+        }); 
+
+      }
+
+      if(item.invoice_description6 != "") {
+        currentY -=15
+        lines = item.invoice_description6.split('\n');
+        numberOfLines = lines.length; 
+        
+        a = 0
+        lines.forEach((line, index) => {
+          const product_name = this._splitText(
+            line,
+            250,       
+            this.font,
+            fontSize
+          );
+
+          product_name.forEach((l, i) => {
+              a -= 15;
+              this._drawText(
+                l,
+                40,
+                currentY+a,
+                fontSize
+            );
+          }); 
+        }); 
+
+      }
+
       
 
       // ลดพิกัด Y ลงไปสำหรับรายการถัดไป
@@ -1440,12 +1773,13 @@ class InvoiceGenerator {
     });
 
     y = y+15
-    text = 'TOTAL ' + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
+    // text = 'TOTAL ' + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
+    text = 'TOTAL  FOB' + this.data.loading_port ;
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
     x = this.page.getWidth() - textWidth - 120;
     this._drawText(text , x, y - 30, fontSize);
 
-    text = Number(this.data.total_invoice_amount).toLocaleString('en-US', {
+    text = Number(this.data.subtotal).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
@@ -1455,7 +1789,7 @@ class InvoiceGenerator {
     y = y - 30
     this._drawText(text, x, y, fontSize);
 
-    if(this.data.freight_cost != null && this.data.freight_cost != 0) {
+    if(this.data.delivery_terms.slice(0, 3) == 'CFR' || this.data.delivery_terms.slice(0, 3) == 'CIF') {
       y -= 15;
       text = "FREIGHT"
       textWidth = this.font.widthOfTextAtSize(text, fontSize);
@@ -1474,7 +1808,7 @@ class InvoiceGenerator {
 
     }
 
-    if(this.data.insurance_cost != 0 && this.data.insurance_cost != null) {
+    if(this.data.delivery_terms.slice(0, 3) == 'CIF') {
       y -= 15;
       text = "INSURANCE"
       textWidth = this.font.widthOfTextAtSize(text, fontSize);
@@ -1493,7 +1827,7 @@ class InvoiceGenerator {
 
     }
 
-    if((this.data.insurance_cost != null && this.data.insurance_cost != 0) || (this.data.freight_cost != null && this.data.freight_cost != 0)) {
+    if(this.data.delivery_terms.slice(0, 3) == 'CFR' || this.data.delivery_terms.slice(0, 3) == 'CIF') {
       this.page.drawLine({
         start: { x: 500, y: y - 2 },
         end: { x: 555, y: y - 2 },
@@ -1507,7 +1841,7 @@ class InvoiceGenerator {
       x = this.page.getWidth() - textWidth - 120;
       this._drawText(text , x, y, fontSize);
 
-      text = Number(this.data.total).toLocaleString('en-US', {
+      text = Number(this.data.total_invoice_amount).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
@@ -1589,11 +1923,12 @@ class InvoiceGenerator {
     
 
     y -= 15 
+    y -= 15
 
     text = "(TOTAL US DOLLARS " + this._numberToWords(this.data.total_invoice_amount) + " )" ;
     this._drawText(text, 40, y, fontSize);
 
-    y_end = y-15;
+    y_end = y;
   }
 
   _drawFooterAcc() {
@@ -1698,23 +2033,35 @@ class InvoiceGenerator {
     
     this._drawText("TOTAL NET WEIGHT :", 40, y, fontSize);
 
-    let text = (this.data.total_net_weight_kg?this.data.total_net_weight_kg:"")+ " KGS.";
+    let text = (this.data.total_net_weight_kg?Number(this.data.total_net_weight_kg).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }):"")+ " KGS.";
     let textWidth = this.font.widthOfTextAtSize(text, fontSize);
     let x = 200 - textWidth ;
-    this._drawText((this.data.total_net_weight_kg?this.data.total_net_weight_kg:"") + " KGS.", x, y, fontSize);
+    this._drawText(text, x, y, fontSize);
 
     y -=15;
     this._drawText("TOTAL TARE WEIGHT :", 40, y, fontSize);
 
-    text = (this.data.total_tare_weight?this.data.total_tare_weight:" ") + " KGS.";
+    text = (this.data.total_tare_weight?Number(this.data.total_tare_weight).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }):" ") + " KGS.";
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
     x = 200 - textWidth ;
-    this._drawText((this.data.total_tare_weight?this.data.total_tare_weight:" ") + " KGS.", x, y, fontSize);
+    this._drawText((this.data.total_tare_weight?Number(this.data.total_tare_weight).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }) :" ") + " KGS.", x, y, fontSize);
     
     y -=15;
     this._drawText("TOTAL GROSS WEIGHT :", 40, y, fontSize);
     
-    text = (this.data.total_gross_weight?this.data.total_gross_weight:" ") + " KGS.";
+    text = (this.data.total_gross_weight?Number(this.data.total_gross_weight).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }) :" ") + " KGS.";
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
     x = 200 - textWidth ;
     this._drawText(text, x, y, fontSize);
@@ -1811,7 +2158,7 @@ class InvoiceGenerator {
     
     startY -= 15;
     this._drawText("SHIP TO :", leftX, startY, labelSize, false);
-    this._drawText(this.data.shipping_address, valueX-25, startY, valueSize);
+    this._drawText(this.data.destination_port, valueX-30, startY, valueSize);
 
     startY -= 15;
     this._drawText("CONTRACT NO. : ", leftX, startY, labelSize, false);
@@ -1887,7 +2234,32 @@ class InvoiceGenerator {
 
     y +=15;
     this._drawText("DESCRIPTION OF GOODS : ", leftX, y , fontSize, false);
+
     for (const item of this.data.line_items) {
+      this._drawText( item.invoice_description, valueX, y , fontSize);
+      if(item.invoice_description2 != "" && item.invoice_description2 != null){
+        y -=15;
+        this._drawText( item.invoice_description2, valueX, y , fontSize);
+      }
+      if(item.invoice_description3 != "" && item.invoice_description3 != null){
+        y -=15;
+        this._drawText( item.invoice_description3, valueX, y , fontSize);
+      }
+      if(item.invoice_description4 != "" && item.invoice_description4 != null){
+        y -=15;
+        this._drawText( item.invoice_description4, valueX, y , fontSize);
+      }
+      if(item.invoice_description5 != "" && item.invoice_description5 != null){
+        y -=15;
+        this._drawText( item.invoice_description5, valueX, y , fontSize);
+      }
+      if(item.invoice_description6 != "" && item.invoice_description6 != null){
+        y -=15;
+        this._drawText( item.invoice_description6, valueX, y , fontSize);
+      }
+      y -=15;
+    }
+    /*for (const item of this.data.line_items) {
       // this._drawText( item.invoice_description, valueX, y , fontSize);
 
       const lines = item.product_name.split('\n');
@@ -1913,31 +2285,13 @@ class InvoiceGenerator {
           );
         }); 
       }); 
-
-      // const product_name = this._splitText(
-      //     item.product_name,
-      //     350,       
-      //     this.font,
-      //     fontSize
-      // );
-
-      // let a = 0
-      // console.log(product_name)
-      // product_name.forEach((line, index) => {
-         
-      //     this._drawText(
-      //       line,
-      //       valueX,
-      //       y+a,
-      //       fontSize
-      //   );
-      //    a -= 15;
-      // }); 
-     
       y -=-a;
-    }
+    }*/
+   
+    // if(y)
     
-    y -=15;
+      // y -=15;
+    
     this._drawText("PACKING CONDITION : ", leftX, y , fontSize, false);
     this._drawText( this.data.packing_remark, valueX, y , fontSize);
 
@@ -2038,7 +2392,7 @@ class InvoiceGenerator {
 
     y -=15;
     this._drawText("VESSEL'S NAME : ", leftX, y , fontSize, false);
-    this._drawText( this.data.vessel , valueX, y , fontSize);
+    this._drawText( this.data.vessel.toUpperCase() , valueX, y , fontSize);
 
     y -=15;
     this._drawText("ETD : ", leftX, y , fontSize, false);
@@ -2087,17 +2441,11 @@ class InvoiceGenerator {
 
     y -=15;
     this._drawText("NET WEIGHT OF EACH CONTAINER : ", leftX, y , fontSize, false);
-    this._drawText( Number(this.data.net_weight_of_each_container).toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      }) +" KGS.", valueX, y , fontSize);
+    this._drawText( Number(this.data.net_weight_of_each_container).toLocaleString('en-US') +" KGS.", valueX, y , fontSize);
 
     y -=15;
     this._drawText("GROSS WEIGHT OF EACH CONTAINER : ", leftX, y , fontSize, false);
-    this._drawText( Number(this.data.gross_weight_of_each_container).toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      }) +" KGS." , valueX, y , fontSize);
+    this._drawText( Number(this.data.gross_weight_of_each_container).toLocaleString('en-US') +" KGS." , valueX, y , fontSize);
     
     y -=15;
     this._drawText("WE HEREBY CERTIFY THIS PACKING LIST IS TRUE AND CORRECT ", leftX, y , fontSize, false);
@@ -2119,10 +2467,10 @@ class InvoiceGenerator {
       thickness: 1,
     });
     y -=15;
-     this._drawText("AUTHORIZED SIGNATURE", 415, y, fontSize);
-     y -=15;
+    this._drawText("AUTHORIZED SIGNATURE", 410, y, fontSize);
+    y -=15;
     let text ="GENERAL STARCH LIMITED AS MANUFACTURER"
-    this._drawText(text, 380, y, fontSize);
+    this._drawText(text, 365, y, fontSize);
   }
 
   _splitText(text, maxWidth, font, size) {
@@ -2215,5 +2563,5 @@ class InvoiceGenerator {
   }
 }
 
-// export default InvoiceGenerator;
-export { InvoiceGenerator as GenService };
+export default InvoiceGenerator;
+// export { InvoiceGenerator as GenService };
