@@ -740,7 +740,7 @@ class InvoiceGenerator {
         color: rgb(0, 0, 0),
     });
 
-    this._drawText('BAGS', quantityX + 40, y, fontSize);
+    this._drawText(this.data.bag_type + ' BAGS', quantityX + 40, y, fontSize);
 
     if(this.data.total_pallet_qty != 0) {
       y -= 15;
@@ -1892,7 +1892,7 @@ class InvoiceGenerator {
         color: rgb(0, 0, 0),
     });
 
-    this._drawText('BAGS', quantityX + 40, y, fontSize);
+    this._drawText(this.data.bag_type + ' BAGS', quantityX + 40, y, fontSize);
 
     if(this.data.total_pallet_qty != 0) {
       y -= 15;
