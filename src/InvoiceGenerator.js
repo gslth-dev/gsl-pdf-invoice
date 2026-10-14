@@ -383,8 +383,15 @@ class InvoiceGenerator {
 
     let currentY = y; 
     const rowHeight = 15; // ความสูงของแต่ละแถว
+    let bag_type = '';
+    let bag_type_count = 0;
 
     for (const item of this.data.line_items) {
+      console.log("item.bag_type",item.bag_type)
+      if(bag_type != item.bag_type) {
+        bag_type = item.bag_type
+        bag_type_count ++;
+      }
 
       // this._drawText(item.invoice_description || "", 40, currentY - 15, fontSize);
 
@@ -740,7 +747,12 @@ class InvoiceGenerator {
         color: rgb(0, 0, 0),
     });
 
-    this._drawText(this.data.bag_type + ' BAGS', quantityX + 40, y, fontSize);
+    console.log("bag_type",bag_type)
+    if(bag_type_count > 1) {
+      bag_type = 'BAGS'
+    }
+
+    this._drawText(bag_type , quantityX + 40, y, fontSize);
 
     if(this.data.total_pallet_qty != 0) {
       y -= 15;
@@ -1565,8 +1577,15 @@ class InvoiceGenerator {
 
     let currentY = y; 
     const rowHeight = 15; // ความสูงของแต่ละแถว
+    let bag_type_count = 0;
+    let bag_type = '';
 
     for (const item of this.data.line_items) {
+
+      if(bag_type != item.bag_type) {
+        bag_type = item.bag_type
+        bag_type_count ++;
+      }
   
       // this._drawText(item.invoice_description || "", 40, currentY - 15, fontSize);
 
@@ -1892,7 +1911,10 @@ class InvoiceGenerator {
         color: rgb(0, 0, 0),
     });
 
-    this._drawText(this.data.bag_type + ' BAGS', quantityX + 40, y, fontSize);
+    if(bag_type_count > 1) {
+      bag_type = 'BAGS';
+    } 
+    this._drawText(bag_type , quantityX + 40, y, fontSize);
 
     if(this.data.total_pallet_qty != 0) {
       y -= 15;
@@ -2293,24 +2315,44 @@ class InvoiceGenerator {
       // y -=15;
     
     this._drawText("PACKING CONDITION : ", leftX, y , fontSize, false);
-    this._drawText( this.data.packing_remark, valueX, y , fontSize);
 
-    if(this.data.packing_remark2 != null && this.data.packing_remark2 != ""){
-      y -=15;
-      this._drawText(this.data.packing_remark2, valueX, y , fontSize);
+    if( this.data.customer_name?.toUpperCase().includes("PULCRA")) {
+
+      const lines = this.data.packing_condition.split('\n');
+      console.log("lines",lines)
+      const numberOfLines = lines.length; 
+      
+      let a = 15
+      lines.forEach((line, index) => {
+
+        a -= 15;
+        this._drawText( line, valueX, y+a , fontSize);
+
+      }); 
+      y = y+a;
+    } else {
+
+      this._drawText( this.data.packing_remark, valueX, y , fontSize);
+      if(this.data.packing_remark2 != null && this.data.packing_remark2 != ""){
+        y -=15;
+        this._drawText(this.data.packing_remark2, valueX, y , fontSize);
+      }
+      if(this.data.packing_remark3 != null && this.data.packing_remark3 != ""){
+        y -=15;
+        this._drawText(this.data.packing_remark3, valueX, y , fontSize);
+      }
+      if(this.data.packing_remark4 != null && this.data.packing_remark4 != ""){
+        y -=15;
+        this._drawText(this.data.packing_remark4, valueX, y , fontSize);
+      }
+      if(this.data.packing_remark5 != null && this.data.packing_remark5 != ""){
+        y -=15;
+        this._drawText(this.data.packing_remark5, valueX, y , fontSize);
+      }
+
     }
-    if(this.data.packing_remark3 != null && this.data.packing_remark3 != ""){
-      y -=15;
-      this._drawText(this.data.packing_remark3, valueX, y , fontSize);
-    }
-    if(this.data.packing_remark4 != null && this.data.packing_remark4 != ""){
-      y -=15;
-      this._drawText(this.data.packing_remark4, valueX, y , fontSize);
-    }
-    if(this.data.packing_remark5 != null && this.data.packing_remark5 != ""){
-      y -=15;
-      this._drawText(this.data.packing_remark5, valueX, y , fontSize);
-    }
+
+    
 
     y -=15;
     this._drawText("SHIPPING MARK : ", leftX, y , fontSize, false);
