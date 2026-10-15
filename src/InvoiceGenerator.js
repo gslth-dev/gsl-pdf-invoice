@@ -607,12 +607,15 @@ class InvoiceGenerator {
     y = y+15
 
     // custom subtotal //'TOTAL 
+    // customs / commercial แสดง FOB + FREIGHT/INSURANCE ตามเทอม CIF/CFR, customer แสดงยอดรวมบรรทัดเดียว
+    const showFreightBreakdown = this.data.invoice_type == "customs_invoice" || this.data.invoice_type == "commercial_invoice";
+
     text = 'TOTAL ' + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
     if(this.data.customer_name == "MITACHARM CORPORATION"  ||  this.data.customer_name == "ITC LIMITED"  ||  this.data.customer_name == "Sanguan Wongse Japan Co.,Ltd."   ||  this.data.customer_name =="International Additive Concepts Inc.") {
         text = 'TOTAL ' + this.data.delivery_terms;
     }
 
-    if(this.data.invoice_type == "customs_invoice") {
+    if(showFreightBreakdown) {
       text = 'TOTAL  FOB' + this.data.loading_port ;
     }
 
@@ -627,7 +630,7 @@ class InvoiceGenerator {
         maximumFractionDigits: 2
       });
 
-    if(this.data.invoice_type == "customs_invoice") {
+    if(showFreightBreakdown) {
       text = Number(this.data.subtotal).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
@@ -639,7 +642,7 @@ class InvoiceGenerator {
     y = y - 30
     this._drawText(text, x, y, fontSize);
 
-    if(this.data.invoice_type == "customs_invoice" ) {
+    if(showFreightBreakdown) {
 
       if(this.data.delivery_terms.slice(0, 3) == 'CFR' || this.data.delivery_terms.slice(0, 3) == 'CIF') {
         y -= 15;
