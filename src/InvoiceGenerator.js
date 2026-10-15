@@ -659,7 +659,7 @@ class InvoiceGenerator {
     }
 
     if(this.data.delivery_terms.slice(0, 3) == 'CFR' || this.data.delivery_terms.slice(0, 3) == 'CIF') {
-      text = 'TOTAL  FOB ' + this.data.loading_port ;
+      text = 'TOTAL FOB ' + this.data.loading_port ;
     }
 
 
@@ -2510,7 +2510,7 @@ class InvoiceGenerator {
     y = y+15
     // text = 'TOTAL ' + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
     if(this.data.delivery_terms.slice(0, 3) == 'CFR' || this.data.delivery_terms.slice(0, 3) == 'CIF'){
-      text = 'TOTAL  FOB ' + this.data.loading_port ;
+      text = 'TOTAL FOB ' + this.data.loading_port ;
     } else {
       text = 'TOTAL ' + this.data.delivery_terms ;
     }
