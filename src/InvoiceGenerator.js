@@ -61,7 +61,8 @@ class InvoiceGenerator {
       this._drawCustomerInfoPack();
       this._drawTablePack();
       this._drawFooterPack();
-    } else if (this.data.invoice_type == "customs_invoice" || this.data.invoice_type == "customer_invoice") {
+    } else if (this.data.invoice_type == "customs_invoice" || this.data.invoice_type == "customer_invoice" ||
+                this.data.invoice_type == "commercial_invoice") {
       this._drawTitle();
       this._drawCustomerInfo();
       this._drawTable();
