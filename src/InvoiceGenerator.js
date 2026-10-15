@@ -9,6 +9,11 @@ import fontkit from '@pdf-lib/fontkit';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 let y_end ;
+const bottomMargin = 50;
+let page_count = 0;
+const pageWidth = 595.28;
+const pageHeight = 841.89;
+let start_page_new = 0;
 class InvoiceGenerator {
   static HEADER_IMAGE = path.resolve(
     __dirname,
@@ -61,14 +66,36 @@ class InvoiceGenerator {
       this._drawCustomerInfoPack();
       this._drawTablePack();
       this._drawFooterPack();
-    } else if (this.data.invoice_type == "customs_invoice" || this.data.invoice_type == "customer_invoice" ||
-                this.data.invoice_type == "commercial_invoice") {
+    } else if (this.data.invoice_type == "customs_invoice" || this.data.invoice_type == "commercial_invoice") {
       this._drawTitle();
       this._drawCustomerInfo();
       this._drawTable();
       this._drawFooter();
+    } else if (this.data.invoice_type == "customer_invoice") {
+      this._drawTitle();
+      this._drawCustomerInfoCustomer();
+      this._drawTableCustomer();
+      this._drawFooterCustomer();
     }
+
+    const pages = this.pdfDoc.getPages();
     
+    const totalPages = this.pdfDoc.getPageCount();
+
+    pages.forEach((page, index) => {
+        const { width } = page.getSize();
+
+        const text = `PAGE ${index + 1} OF ${totalPages}`;
+        const textWidth = this.font.widthOfTextAtSize(text, 8);
+
+        page.drawText(text, {
+            x: (width - textWidth - 10),
+            y: 830,
+            size: 7,
+            font: this.font,
+            color: rgb(0, 0, 0),
+        });
+    });
 
     return await this.pdfDoc.save();
   }
@@ -81,6 +108,18 @@ class InvoiceGenerator {
     bold = false,
     color = rgb(0, 0, 0)
   ) {
+    if (y < bottomMargin) {
+      
+        if(y < (y - (page_count * pageHeight) + bottomMargin )) {
+           this.page =  this.pdfDoc.addPage([595.28, 841.89]); //this.page..addPage([pageWidth, pageHeight]);
+           page_count++;
+          start_page_new =  y
+          y = pageHeight - 50; 
+        } else {
+          y = y - start_page_new + pageHeight - 50 ;
+        }
+        // console.log("y",y)
+    }
     this.page.drawText(String(text || ""), {
       x,
       y,
@@ -89,6 +128,30 @@ class InvoiceGenerator {
       font: bold ? this.bold :this.font ,
     });
   }
+
+  _drawLine(
+    startX,
+    startY,
+    endX,
+    endY,
+    thickness = 1,
+    color = rgb(0, 0, 0)
+  ) {
+
+    if (startY < bottomMargin) {
+      startY = startY - start_page_new + pageHeight - 50 ;
+      endY = endY - start_page_new + pageHeight - 50 ;
+    }
+    
+    this.page.drawLine({
+      start: { x: startX, y: startY },
+      end: { x: endX, y: endY },
+      thickness,
+      color,
+    });
+  }
+
+
 
   _drawTextAddr(
     text,
@@ -155,12 +218,6 @@ class InvoiceGenerator {
       
     );
 
-    this._drawText(
-      "PAGE 1 OF 1",
-      500,
-      710,
-      7
-    );
   }
 
   _drawTitle() {
@@ -353,11 +410,9 @@ class InvoiceGenerator {
     const fontSize = 8;
     const quantityX = 340;
 
-    this.page.drawLine({
-      start: { x: 40, y: y + 30 },
-      end: { x: 555, y: y + 30 },
-      thickness: 1,
-    });
+
+    this._drawLine(40, y + 30, 555, y + 30, 1);
+    
 
     this._drawText("DESCRIPTION", 50, y + 15, fontSize, true);
     this._drawText("QUANTITY", 340, y + 15, fontSize, true);
@@ -376,11 +431,7 @@ class InvoiceGenerator {
 
     this._drawText("(USD)", x, y +5, fontSize, true);
 
-    this.page.drawLine({
-      start: { x: 40, y },
-      end: { x: 555, y },
-      thickness: 1,
-    });
+    this._drawLine(40, y, 555, y, 1);
 
     let currentY = y; 
     const rowHeight = 15; // ความสูงของแต่ละแถว
@@ -580,9 +631,6 @@ class InvoiceGenerator {
 
       }
 
-      
-      
-     
 
       console.log(currentY)
 
@@ -598,22 +646,20 @@ class InvoiceGenerator {
 
     }
 
-    this.page.drawLine({
-      start: { x: 500, y: currentY-2 },
-      end: { x: 555, y: currentY-2 },
-      thickness: 1,
-    });
+  
+
+    this._drawLine(500, currentY-2, 555, currentY-2, 1);
 
     y = y+15
 
     // custom subtotal //'TOTAL 
-    text = 'TOTAL ' + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
+    text = 'TOTAL ' + this.data.delivery_terms;
     if(this.data.customer_name == "MITACHARM CORPORATION"  ||  this.data.customer_name == "ITC LIMITED"  ||  this.data.customer_name == "Sanguan Wongse Japan Co.,Ltd."   ||  this.data.customer_name =="International Additive Concepts Inc.") {
         text = 'TOTAL ' + this.data.delivery_terms;
     }
 
-    if(this.data.invoice_type == "customs_invoice") {
-      text = 'TOTAL  FOB' + this.data.loading_port ;
+    if(this.data.delivery_terms.slice(0, 3) == 'CFR' || this.data.delivery_terms.slice(0, 3) == 'CIF') {
+      text = 'TOTAL  FOB ' + this.data.loading_port ;
     }
 
 
@@ -627,7 +673,7 @@ class InvoiceGenerator {
         maximumFractionDigits: 2
       });
 
-    if(this.data.invoice_type == "customs_invoice") {
+    if(this.data.delivery_terms.slice(0, 3) == 'CFR' || this.data.delivery_terms.slice(0, 3) == 'CIF') {
       text = Number(this.data.subtotal).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
@@ -639,70 +685,67 @@ class InvoiceGenerator {
     y = y - 30
     this._drawText(text, x, y, fontSize);
 
-    if(this.data.invoice_type == "customs_invoice" ) {
-
-      if(this.data.delivery_terms.slice(0, 3) == 'CFR' || this.data.delivery_terms.slice(0, 3) == 'CIF') {
-        y -= 15;
-        text = "FREIGHT"
-        textWidth = this.font.widthOfTextAtSize(text, fontSize);
-        x = this.page.getWidth() - textWidth - 120;
-        this._drawText(text, x, y, fontSize);
 
 
-        text = Number(this.data.freight_cost).toLocaleString('en-US', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        });
-        
-        textWidth = this.font.widthOfTextAtSize(text, fontSize);
-        x = this.page.getWidth() - textWidth - 40;
-        this._drawText(text, x, y, fontSize);
-
-      }
-
-      if(this.data.delivery_terms.slice(0, 3) == 'CIF') {
-        y -= 15;
-        text = "INSURANCE"
-        textWidth = this.font.widthOfTextAtSize(text, fontSize);
-        x = this.page.getWidth() - textWidth - 120;
-        this._drawText(text, x, y, fontSize);
+    if(this.data.delivery_terms.slice(0, 3) == 'CFR' || this.data.delivery_terms.slice(0, 3) == 'CIF') {
+      y -= 15;
+      text = "FREIGHT"
+      textWidth = this.font.widthOfTextAtSize(text, fontSize);
+      x = this.page.getWidth() - textWidth - 120;
+      this._drawText(text, x, y, fontSize);
 
 
-        text = Number(this.data.insurance_cost).toLocaleString('en-US', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        });
-        
-        textWidth = this.font.widthOfTextAtSize(text, fontSize);
-        x = this.page.getWidth() - textWidth - 40;
-        this._drawText(text, x, y, fontSize);
+      text = Number(this.data.freight_cost).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+      
+      textWidth = this.font.widthOfTextAtSize(text, fontSize);
+      x = this.page.getWidth() - textWidth - 40;
+      this._drawText(text, x, y, fontSize);
 
-      }
-
-      if(this.data.delivery_terms.slice(0, 3) == 'CFR' || this.data.delivery_terms.slice(0, 3) == 'CIF') {
-        this.page.drawLine({
-          start: { x: 500, y: y - 2 },
-          end: { x: 555, y: y - 2 },
-          thickness: 1,
-          color:  rgb(0, 0, 0),
-        });
-
-        y -= 15
-        text = "TOTAL "  + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
-        textWidth = this.font.widthOfTextAtSize(text, fontSize);
-        x = this.page.getWidth() - textWidth - 120;
-        this._drawText(text , x, y, fontSize);
-
-        text = Number(this.data.total_invoice_amount).toLocaleString('en-US', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        });
-        textWidth = this.font.widthOfTextAtSize(text, fontSize);
-        x = this.page.getWidth() - textWidth - 40;
-        this._drawText(text, x, y, fontSize);
-
-      }
     }
+
+    if(this.data.delivery_terms.slice(0, 3) == 'CIF') {
+      y -= 15;
+      text = "INSURANCE"
+      textWidth = this.font.widthOfTextAtSize(text, fontSize);
+      x = this.page.getWidth() - textWidth - 120;
+      this._drawText(text, x, y, fontSize);
+
+
+      text = Number(this.data.insurance_cost).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+      
+      textWidth = this.font.widthOfTextAtSize(text, fontSize);
+      x = this.page.getWidth() - textWidth - 40;
+      this._drawText(text, x, y, fontSize);
+
+    }
+
+    if(this.data.delivery_terms.slice(0, 3) == 'CFR' || this.data.delivery_terms.slice(0, 3) == 'CIF') {
+
+
+      this._drawLine(500, y-2, 555, y-2, 1);
+
+      y -= 15
+      text = 'TOTAL '  + this.data.delivery_terms;
+      textWidth = this.font.widthOfTextAtSize(text, fontSize);
+      x = this.page.getWidth() - textWidth - 120;
+      this._drawText(text , x, y, fontSize);
+
+      text = Number(this.data.total_invoice_amount).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+      textWidth = this.font.widthOfTextAtSize(text, fontSize);
+      x = this.page.getWidth() - textWidth - 40;
+      this._drawText(text, x, y, fontSize);
+
+    }
+    
 
    
 
@@ -711,19 +754,10 @@ class InvoiceGenerator {
     const gap = 2;              
     const offsetFromText = 4;   
 
-    this.page.drawLine({
-        start: { x: 500, y: y - offsetFromText },
-        end: { x: 555, y: y - offsetFromText },
-        thickness: thickness,
-        color:  rgb(0, 0, 0),
-    });
 
-    this.page.drawLine({
-        start: { x: 500, y: y - offsetFromText - gap - thickness },
-        end: { x: 555, y: y - offsetFromText - gap - thickness },
-        thickness: thickness,
-        color: rgb(0, 0, 0),
-    });
+    this._drawLine(500, y - offsetFromText, 555, y - offsetFromText, thickness);
+    this._drawLine(500, y - offsetFromText - gap - thickness, 555, y - offsetFromText - gap - thickness, thickness);
+
 
     y -= 15;
     this._drawText('TOTAL', quantityX - 30, y, fontSize);
@@ -732,21 +766,11 @@ class InvoiceGenerator {
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
     x = 380 - textWidth -5; 
 
-    this.page.drawLine({
-        start: { x: quantityX, y: y+15 - offsetFromText-2 },
-        end: { x: 380-5, y: y+15 - offsetFromText-2 },
-        thickness: thickness,
-        color: rgb(0, 0, 0),
-    });
+    this._drawLine(quantityX, y+15 - offsetFromText-2, 380-5, y+15 - offsetFromText-2, thickness);
 
     this._drawText(this.data.total_bag_qty, x, y, fontSize);
 
-    this.page.drawLine({
-        start: { x: quantityX, y: y - offsetFromText },
-        end: { x: 380-5, y: y - offsetFromText },
-        thickness: thickness,
-        color: rgb(0, 0, 0),
-    });
+    this._drawLine(quantityX, y - offsetFromText, 380-5, y - offsetFromText, thickness);
 
     console.log("bag_type",bag_type)
     if(bag_type_count > 1) {
@@ -765,19 +789,9 @@ class InvoiceGenerator {
 
       this._drawText(this.data.total_pallet_qty, x, y, fontSize);
 
-      this.page.drawLine({
-          start: { x: quantityX, y: y - offsetFromText },
-          end: { x: 380-5, y: y - offsetFromText },
-          thickness: thickness,
-          color: rgb(0, 0, 0),
-      });
+      this._drawLine(quantityX, y - offsetFromText, 380-5, y - offsetFromText, thickness);
+      this._drawLine(quantityX, y- offsetFromText - gap - thickness, 380-5, y- offsetFromText - gap - thickness, thickness);
 
-      this.page.drawLine({
-          start: { x: quantityX, y: y- offsetFromText - gap - thickness },
-          end: { x: 380-5, y: y- offsetFromText - gap - thickness },
-          thickness: thickness,
-          color: rgb(0, 0, 0),
-      });
 
       this._drawText('PALLETS', quantityX + 40, y, fontSize);
     }
@@ -792,6 +806,730 @@ class InvoiceGenerator {
   }
 
   _drawFooter() {
+    let y = y_end;
+    const fontSize = 8;
+    const valueX = 100;
+
+    this._drawText(this.data.amountText, 40, y, fontSize, false);
+    y -=15;
+
+    /***** packing line */
+    this._drawText("PACKING : " , 40, y, fontSize);
+    this._drawText(this.data.packing_remark , 85, y, fontSize);
+    if(this.data.packing_remark2 != null && this.data.packing_remark2 != "") {
+      y -=15;
+      this._drawText(this.data.packing_remark2 , 85, y, fontSize);
+    }
+    if(this.data.packing_remark3 != null && this.data.packing_remark3 != "") {
+      y -=15;
+      this._drawText(this.data.packing_remark3 , 85, y, fontSize);
+    }
+    if(this.data.packing_remark4 != null && this.data.packing_remark4 != "") {
+      y -=15;
+      this._drawText(this.data.packing_remark4 , 85, y, fontSize);
+    }
+    if(this.data.packing_remark5 != null && this.data.packing_remark5 != "") {
+      y -=15;
+      this._drawText(this.data.packing_remark5 , 85, y, fontSize);
+    }
+    y -=15;
+
+     /***** SHIPPING MARK line */
+    this._drawText("SHIPPING MARK : ", 40, y, fontSize);
+    this._drawText( this.data.shipping_remark , valueX+10, y , fontSize);
+
+    if(this.data.shipping_remark2 != null && this.data.shipping_remark2 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark2, valueX+10, y , fontSize);
+    }
+    if(this.data.shipping_remark3 != null && this.data.shipping_remark3 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark3, valueX+10, y , fontSize);
+    }
+    if(this.data.shipping_remark4 != null && this.data.shipping_remark4 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark4, valueX+10, y , fontSize);
+    }
+    if(this.data.shipping_remark5 != null && this.data.shipping_remark5 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark5, valueX+10, y , fontSize);
+    }
+    if(this.data.shipping_remark6 != null && this.data.shipping_remark6 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark6, valueX+10, y , fontSize);
+    }
+    if(this.data.shipping_remark7 != null && this.data.shipping_remark7 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark7, valueX+10, y , fontSize);
+    }
+    if(this.data.shipping_remark8 != null && this.data.shipping_remark8 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark8, valueX+10, y , fontSize);
+    }
+    if(this.data.shipping_remark9 != null && this.data.shipping_remark9 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark9, valueX+10, y , fontSize);
+    }
+    if(this.data.shipping_remark10 != null && this.data.shipping_remark10 != ""){
+      y -=15;
+      this._drawText(this.data.shipping_remark10, valueX+10, y , fontSize);
+    }
+
+    let count_batch = 0;
+      if(this.data.custom_relations){
+        // for (const item of this.data.custom_relations) {
+        count_batch ++;
+      // }
+    }
+    
+    if(count_batch > 0){
+      y -=15;
+      this._drawText("BATCH NO : " , 40, y, fontSize);
+      let i_batch = 1;
+      for (const item of this.data.custom_relations) {
+        // for (const i of item.batch) {
+          this._drawText(i_batch + ") " + item.batch_no, valueX, y , fontSize);
+          
+          let text_batch = item.bags + " Bags"
+          let textWidth = this.font.widthOfTextAtSize(text_batch, fontSize);
+          let BagsX = valueX+130 - textWidth;
+
+          this._drawText(text_batch, BagsX, y , fontSize);
+          y -=15;
+          i_batch++;
+        // }
+      
+      }
+    } else {
+      y -=15;
+    }
+
+    this._drawText("TOTAL NET WEIGHT :", 40, y, fontSize);
+
+    let text = (this.data.total_net_weight_kg?Number(this.data.total_net_weight_kg).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }):"") + " KGS.";
+    let textWidth = this.font.widthOfTextAtSize(text, fontSize);
+    let x = 200 - textWidth ;
+    this._drawText((this.data.total_net_weight_kg?Number(this.data.total_net_weight_kg).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }) :"") + " KGS.", x, y, fontSize);
+
+    y -=15;
+    this._drawText("TOTAL TARE WEIGHT :", 40, y, fontSize);
+
+    text = (this.data.total_tare_weight?Number(this.data.total_tare_weight).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }) :" ") + " KGS.";
+    textWidth = this.font.widthOfTextAtSize(text, fontSize);
+    x = 200 - textWidth ;
+    this._drawText((this.data.total_tare_weight?Number(this.data.total_tare_weight).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }):" ") + " KGS.", x, y, fontSize);
+    
+    y -=15;
+    this._drawText("TOTAL GROSS WEIGHT :", 40, y, fontSize);
+    
+    text = (this.data.total_gross_weight?Number(this.data.total_gross_weight).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }):" ") + " KGS.";
+    textWidth = this.font.widthOfTextAtSize(text, fontSize);
+    x = 200 - textWidth ;
+    this._drawText((this.data.total_gross_weight?Number(this.data.total_gross_weight).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }):" ") + " KGS.", x, y, fontSize);
+    
+    y -=15;
+    this._drawText("COUNTRY OF ORIGIN : THAILAND", 40, y, fontSize);
+    y -=15;
+    this._drawText("REMARKS : " +this.data.remark, 40, y, fontSize);
+    y -=15;
+    this._drawText("WE HEREBY CERTIFY THIS INVOICE IS TRUE AND CORRECT.", 40, y, fontSize);
+
+    if(this.data.for_delivery_to != "" && this.data.for_delivery_to != null) {
+      y -=15;
+      this._drawText("FOR DELIVERY TO : " +this.data.for_delivery_to, 40, y, fontSize);
+    }
+    
+  }
+
+  _drawCustomerInfoCustomer() {
+    const labelSize = 8;
+    const valueSize = 8;
+
+    const leftX = 40;
+    const valueX = 120;
+
+    const rightLabelX = 340;
+    const rightValueX = 390;    
+
+    const startY = 670;
+    const lineGap = 15; 
+  
+    let leftY = startY;
+    this._drawText("INVOICE NO. :", leftX, leftY, labelSize, false);
+    this._drawText(this.data.invoice_number, valueX, leftY, valueSize);
+
+    leftY -= lineGap
+    this._drawText("SALE ORDER NO. :", leftX, leftY, labelSize, false);
+    this._drawText(this.data.es_no, valueX, leftY, valueSize);
+
+    leftY -= lineGap
+    this._drawText("CONTRACT NO. :", leftX, leftY, labelSize, false);
+    this._drawText(this.data.po_number, valueX, leftY, valueSize);
+
+    leftY -= lineGap
+    this._drawText("BILL TO :", leftX, leftY, labelSize, false);
+    this._drawText(this.data.customer_name.toUpperCase(), valueX-30, leftY, valueSize);
+
+    if(this.data.customer_name?.toUpperCase().includes("TOP BLOSSOM")) {
+      leftY -= lineGap;
+      this._drawText("SHIPPER :", leftX, leftY, labelSize, false);
+      // this._drawText(this.data.shipper, valueX-30, leftY, valueSize);
+
+      const lines = this.data.shipper.split('\n');
+      console.log("lines",lines)
+      const numberOfLines = lines.length; 
+      
+      let a = lineGap
+      lines.forEach((line, index) => {
+        
+
+        a -= lineGap;
+        this._drawText(
+          line,
+          valueX-30,
+          leftY+a,
+          valueSize
+        );
+      }); 
+      leftY +=a;
+
+    }
+
+    leftY -= lineGap;
+    this._drawText(this.data.address1, valueX-30, leftY, valueSize);
+
+    if(this.data.address2){
+      leftY -= lineGap;
+      this._drawText(this.data.address2, valueX-30, leftY, valueSize);
+    }
+    if(this.data.address3){
+      leftY -= lineGap;
+      this._drawText(this.data.address3, valueX-30, leftY, valueSize);
+    }
+    if(this.data.address4){
+      leftY -= lineGap;
+      this._drawText(this.data.address4, valueX-30, leftY, valueSize);
+    }
+    if(this.data.address5){
+      leftY -= lineGap;
+      this._drawText(this.data.address5, valueX-30, leftY, valueSize);
+    }
+    if(this.data.address6){
+      leftY -= lineGap;
+      this._drawText(this.data.address6, valueX-30, leftY, valueSize);
+    }
+
+   
+    leftY -= lineGap;
+    let term_line = leftY
+    this._drawText("TERM OF PAYMENT :", leftX, leftY, labelSize, false);
+    
+    this._drawText(this.data.payment_term, valueX+5, leftY, valueSize);
+
+    // const payment_term = this._splitText(
+    //     this.data.payment_term,
+    //     200,       
+    //     this.font,
+    //     valueSize
+    // );
+
+    // payment_term.forEach((line, index) => {
+    //   if(index > 0){
+    //       leftY -= lineGap;
+    //   }
+    //   this._drawText(
+    //     line,
+    //     valueX+10,
+    //     leftY,
+    //     valueSize
+    //   );
+    // }); 
+    
+    
+
+    leftY -= lineGap;
+    this._drawText("SHIPMENT BY :", leftX, leftY, labelSize, false);
+    this._drawText(this.data.vessel.toUpperCase(), valueX, leftY, valueSize);
+
+    leftY -= lineGap;
+    this._drawText("FROM :", leftX, leftY, labelSize, false);
+    this._drawText(this.data.loading_port, valueX, leftY, valueSize);
+
+
+    let rightY = startY
+    const dateObject = new Date();
+
+    const date_formattedDateUTC = dateObject.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC' // Forces UTC interpretation
+    }).toUpperCase();
+    this._drawText("DATE :", rightLabelX+100, rightY, labelSize, false);
+    this._drawText(date_formattedDateUTC, rightLabelX+135, rightY, valueSize);
+
+    if(this.data.customer_name?.toUpperCase().includes("MITACHARM") || this.data.customer_name?.toUpperCase().includes("XIAMEN")) {
+      this._drawText("LC No. :", rightLabelX, rightY - (lineGap * 2), labelSize, false);
+      this._drawText(this.data.lc_no, rightValueX, rightY - (lineGap * 2), valueSize);
+
+    }
+    
+
+
+
+    rightY -= (lineGap * 3)
+    this._drawText("SHIP TO :", rightLabelX, rightY, labelSize, false);
+    this._drawText(this.data.destination_port, rightValueX, rightY, valueSize);
+
+    if(this.data.customer_name?.toUpperCase().includes("TOP BLOSSOM")) {
+
+      if(this.data.consignee1 != null && this.data.consignee1 !="") {
+        rightY -=15
+        this._drawText("CONSIGNEE :  ", rightLabelX, rightY, labelSize, false);
+
+        const consignee = this._splitText(
+            this.data.consignee1,
+            150,       
+            this.font,
+            valueSize
+        );
+
+        consignee.forEach((line, index) => {
+          if(index > 0) {
+            rightY -= 15;
+            this._drawText(
+              line,
+              rightLabelX,
+              rightY,
+              valueSize
+          );
+          } else {
+            this._drawText(
+              line,
+              rightValueX,
+              rightY,
+              valueSize
+            );
+          }
+          
+        }); 
+      }
+      
+      // this._drawText(this.data.consignee1, rightValueX, startYright , valueSize);
+
+      if(this.data.consignee2 !="" && this.data.consignee2 != null) {
+        rightY -=15
+        this._drawText(this.data.consignee2, rightLabelX, rightY , valueSize);
+      }
+
+      if(this.data.consignee3 !="" && this.data.consignee3 != null) {
+        rightY -=15
+        this._drawText(this.data.consignee3, rightLabelX, rightY , valueSize);
+      }
+
+    }
+
+
+
+    if(this.data.customer_name?.toUpperCase().includes("TOP BLOSSOM")) {
+      rightY = leftY + (lineGap * 2)
+    } else {
+      rightY = leftY + (lineGap * 2)
+
+    if (rightY == term_line) {
+      rightY += lineGap;
+    }
+
+    console.log("this.data.due_date",this.data.due_date)
+    if(this.data.show_due_date == true) {
+      const due_date_obj = new Date(this.data.due_date);
+
+      const due_date_formattedDateUTC = due_date_obj.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'UTC' // Forces UTC interpretation
+      }).toUpperCase();
+
+      this._drawText("DUE DATE :", rightLabelX, rightY, labelSize, false);
+      this._drawText(due_date_formattedDateUTC, rightValueX, rightY, valueSize);
+    }
+
+    }
+    
+    
+
+
+    rightY -= (lineGap*2)
+    const date_etd = new Date(this.data.etd);
+
+    const etd_formattedDate = date_etd.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC' // Forces UTC interpretation
+    }).toUpperCase();
+
+    this._drawText("ETD :", rightLabelX, rightY, labelSize, false);
+    this._drawText(etd_formattedDate, rightValueX, rightY, valueSize);
+
+
+    rightY -= lineGap 
+    const date_eta = new Date(this.data.eta);
+
+    const eta_formattedDate = date_eta.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC' // Forces UTC interpretation
+    }).toUpperCase();
+
+    this._drawText("ETA :", rightLabelX, rightY, labelSize, false);
+    this._drawText(eta_formattedDate, rightValueX, rightY, valueSize);
+
+    y_end = rightY
+  }
+
+  _drawTableCustomer() {
+    let y = y_end-45;
+    const fontSize = 8;
+    const quantityX = 340;
+
+
+    this._drawLine(40, y+30, 555, y+30, 1);
+
+    this._drawText("DESCRIPTION", 50, y + 15, fontSize, true);
+    this._drawText("QUANTITY", 340, y + 15, fontSize, true);
+    this._drawText("UNIT PRICE", 430, y + 15, fontSize, true);
+    this._drawText("(USD PER MT)", 430, y+5 , fontSize, true);
+
+    let text = "AMOUNT";
+    let textWidth = this.font.widthOfTextAtSize(text, fontSize);
+    let x = this.page.getWidth() - textWidth - 45;
+
+    this._drawText("AMOUNT", x, y + 15, fontSize, true);
+
+    text = "USD";
+    textWidth = this.font.widthOfTextAtSize(text, fontSize);
+    x = this.page.getWidth() - textWidth - 50;
+
+    this._drawText("(USD)", x, y +5, fontSize, true);
+
+
+    this._drawLine(40, y, 555, y, 1);
+
+    let currentY = y; 
+    const rowHeight = 15; // ความสูงของแต่ละแถว
+    let bag_type = '';
+    let bag_type_count = 0;
+
+    for (const item of this.data.line_items) {
+      console.log("item.bag_type",item.bag_type)
+      if(bag_type != item.bag_type) {
+        bag_type = item.bag_type
+        bag_type_count ++;
+      }
+
+      // this._drawText(item.invoice_description || "", 40, currentY - 15, fontSize);
+
+      let lines = item.invoice_description.split('\n');
+      let numberOfLines = lines.length; 
+      
+      let a = 0
+      lines.forEach((line, index) => {
+        const product_name = this._splitText(
+          line,
+          250,       
+          this.font,
+          fontSize
+        );
+
+        product_name.forEach((l, i) => {
+            a -= 15;
+            this._drawText(
+              l,
+              40,
+              currentY+a,
+              fontSize
+          );
+        }); 
+      }); 
+
+
+      this._drawText((item.bag_qty?item.bag_qty:" ") +" x "+(item.packaging_type?item.packaging_type:"")+" KGS = "+(item.quantity?Number(item.quantity).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }):" ") + " MT" || "0.00", 320, currentY - 15, fontSize);
+
+      this._drawText((Number(item.unit_price)+Number(item.freight_cost_usd)+Number(item.insurance_cost_usd)).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }) || "0.00", 450, currentY - 15, fontSize);
+
+      const amountText = Number(item.total_amount).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+      let textWidth = 0;
+      let amountX = this.page.getWidth() - 40; // ค่า default ถ้าไม่มีข้อความ
+
+      if (amountText) {
+        textWidth = this.font.widthOfTextAtSize(amountText, fontSize);
+        amountX = this.page.getWidth() - textWidth - 40;
+      }
+       // วาด Line Amount
+      this._drawText(amountText, amountX, currentY - 15, fontSize);
+
+      if(item.invoice_description2 != "") {
+        currentY -=15
+
+        lines = item.invoice_description2.split('\n');
+        numberOfLines = lines.length; 
+        
+        a = 0
+        lines.forEach((line, index) => {
+          const product_name = this._splitText(
+            line,
+            250,       
+            this.font,
+            fontSize
+          );
+
+          product_name.forEach((l, i) => {
+              a -= 15;
+              this._drawText(
+                l,
+                40,
+                currentY+a,
+                fontSize
+            );
+          }); 
+        }); 
+
+      }
+
+      if(item.invoice_description3 != "") {
+        currentY -=15
+        lines = item.invoice_description3.split('\n');
+        numberOfLines = lines.length; 
+        
+        a = 0
+        lines.forEach((line, index) => {
+          const product_name = this._splitText(
+            line,
+            250,       
+            this.font,
+            fontSize
+          );
+
+          product_name.forEach((l, i) => {
+              a -= 15;
+              this._drawText(
+                l,
+                40,
+                currentY+a,
+                fontSize
+            );
+          }); 
+        }); 
+
+      }
+
+      if(item.invoice_description4 != "") {
+        currentY -=15
+        lines = item.invoice_description4.split('\n');
+        numberOfLines = lines.length; 
+        
+        a = 0
+        lines.forEach((line, index) => {
+          const product_name = this._splitText(
+            line,
+            250,       
+            this.font,
+            fontSize
+          );
+
+          product_name.forEach((l, i) => {
+              a -= 15;
+              this._drawText(
+                l,
+                40,
+                currentY+a,
+                fontSize
+            );
+          }); 
+        }); 
+
+      }
+
+      if(item.invoice_description5 != "") {
+        currentY -=15
+        lines = item.invoice_description5.split('\n');
+        numberOfLines = lines.length; 
+        
+        a = 0
+        lines.forEach((line, index) => {
+          const product_name = this._splitText(
+            line,
+            250,       
+            this.font,
+            fontSize
+          );
+
+          product_name.forEach((l, i) => {
+              a -= 15;
+              this._drawText(
+                l,
+                40,
+                currentY+a,
+                fontSize
+            );
+          }); 
+        }); 
+
+      }
+
+      if(item.invoice_description6 != "") {
+        currentY -=15
+        lines = item.invoice_description6.split('\n');
+        numberOfLines = lines.length; 
+        
+        a = 0
+        lines.forEach((line, index) => {
+          const product_name = this._splitText(
+            line,
+            250,       
+            this.font,
+            fontSize
+          );
+
+          product_name.forEach((l, i) => {
+              a -= 15;
+              this._drawText(
+                l,
+                40,
+                currentY+a,
+                fontSize
+            );
+          }); 
+        }); 
+
+      }
+
+
+      console.log(currentY)
+
+      // ลดพิกัด Y ลงไปสำหรับรายการถัดไป
+      currentY -= 0 - a;
+
+
+      console.log(currentY)
+      // this._drawText(item.invoice_description || "", 40, currentY - 15, fontSize);
+
+   
+      y = currentY
+
+    }
+
+
+    this._drawLine(500, currentY-2, 555, currentY-2, 1);
+
+    y = y+15
+
+    // custom subtotal //'TOTAL 
+    text = 'TOTAL ' + this.data.delivery_terms;
+    if(this.data.customer_name == "MITACHARM CORPORATION"  ||  this.data.customer_name == "ITC LIMITED"  ||  this.data.customer_name == "Sanguan Wongse Japan Co.,Ltd."   ||  this.data.customer_name =="International Additive Concepts Inc.") {
+        text = 'TOTAL ' + this.data.delivery_terms;
+    }
+  
+    textWidth = this.font.widthOfTextAtSize(text, fontSize);
+    x = this.page.getWidth() - textWidth - 120;
+    this._drawText(text , x, y - 30, fontSize);
+
+    text = Number(this.data.total_invoice_amount).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
+    textWidth = this.font.widthOfTextAtSize(text, fontSize);
+    x = this.page.getWidth() - textWidth - 40;
+
+    y = y - 30
+    this._drawText(text, x, y, fontSize);
+
+
+    const thickness = 1;      
+    const gap = 2;              
+    const offsetFromText = 4;   
+
+    this._drawLine(500, y - offsetFromText, 555, y - offsetFromText, thickness);
+    this._drawLine(500, y - offsetFromText - gap - thickness, 555, y - offsetFromText - gap - thickness, thickness);
+
+    y -= 15;
+    this._drawText('TOTAL', quantityX - 30, y, fontSize);
+
+    text = String(this.data.total_bag_qty);
+    textWidth = this.font.widthOfTextAtSize(text, fontSize);
+    x = 380 - textWidth -5; 
+
+
+    this._drawLine(quantityX,  y+15 - offsetFromText-2, 380-5,  y+15 - offsetFromText-2, thickness);
+
+    this._drawText(this.data.total_bag_qty, x, y, fontSize);
+
+    this._drawLine(quantityX, y - offsetFromText, 380-5, y - offsetFromText, thickness);
+
+    console.log("bag_type",bag_type)
+    if(bag_type_count > 1) {
+      bag_type = 'BAGS'
+    }
+
+    this._drawText(bag_type , quantityX + 40, y, fontSize);
+
+    if(this.data.total_pallet_qty != 0) {
+      y -= 15;
+      this._drawText('IN', quantityX - 30, y, fontSize);
+
+      text = String(this.data.total_pallet_qty);
+      textWidth = this.font.widthOfTextAtSize(text, fontSize);
+      x = 380 - textWidth-5 ; 
+
+      this._drawText(this.data.total_pallet_qty, x, y, fontSize);
+
+      this._drawLine(quantityX, y - offsetFromText, 380-5, y - offsetFromText, thickness);
+      this._drawLine(quantityX, y- offsetFromText - gap - thickness, 380-5, y- offsetFromText - gap - thickness, thickness);
+
+      this._drawText('PALLETS', quantityX + 40, y, fontSize);
+    }
+    
+
+    y -= 15 
+    y -= 15 
+    text = "(TOTAL US DOLLARS " + this._numberToWords(this.data.total_invoice_amount) + ")" ;
+    this._drawText(text, 40, y, fontSize);
+
+    y_end = y;
+  }
+
+  _drawFooterCustomer() {
     let y = y_end;
     const fontSize = 8;
     const valueX = 100;
@@ -1064,11 +1802,8 @@ class InvoiceGenerator {
     const fontSize = 8;
     const quantityX = 340;
 
-    this.page.drawLine({
-      start: { x: 40, y: y + 30 },
-      end: { x: 555, y: y + 30 },
-      thickness: 1,
-    });
+  
+    this._drawLine(40, y + 30, 555, y + 30, 1);
 
     this._drawText("ITEM", 40, y + 15, fontSize, true);
     this._drawText("DESCRIPTION", 70, y + 15, fontSize, true);
@@ -1088,11 +1823,8 @@ class InvoiceGenerator {
 
     this._drawText("(USD)", x, y +5, fontSize, true);
 
-    this.page.drawLine({
-      start: { x: 40, y },
-      end: { x: 555, y },
-      thickness: 1,
-    });
+    this._drawLine(40, y, 555, y, 1);
+
 
     let currentY = y; 
     const rowHeight = 15; // ความสูงของแต่ละแถว
@@ -1162,11 +1894,8 @@ class InvoiceGenerator {
 
     }
     y = y+15
-    this.page.drawLine({
-      start: { x: 500, y: y - 20 },
-      end: { x: 555, y: y - 20 },
-      thickness: 1,
-    });
+
+    this._drawLine(40, y-20, 555, y-20, 1);
 
     
 
@@ -1201,19 +1930,10 @@ class InvoiceGenerator {
     const gap = 2;              
     const offsetFromText = 4;   
 
-    this.page.drawLine({
-        start: { x: 500, y: y-30 - offsetFromText },
-        end: { x: 555, y: y-30 - offsetFromText },
-        thickness: thickness,
-        color:  rgb(0, 0, 0),
-    });
+    this._drawLine(500, y-30 - offsetFromText, 555, y-30 - offsetFromText, 1);
+    this._drawLine(500, y -30- offsetFromText - gap - thickness, 555, y -30- offsetFromText - gap - thickness, 1);
 
-    this.page.drawLine({
-        start: { x: 500, y: y -30- offsetFromText - gap - thickness },
-        end: { x: 555, y: y -30- offsetFromText - gap - thickness },
-        thickness: thickness,
-        color: rgb(0, 0, 0),
-    });
+ 
 
     text = "(TOTAL US DOLLARS " + this._numberToWords(this.data.total_invoice_amount) + " )" ;
 
@@ -1226,11 +1946,7 @@ class InvoiceGenerator {
 
     this._drawText(text, x, y-50, fontSize);
 
-    this.page.drawLine({
-      start: { x: 40, y: y -55 },
-      end: { x: 555, y: y -55 },
-      thickness: 1,
-    });
+    this._drawLine(40, y -55, 555, y -55, 1);
 
     y_end = y-60;
   }
@@ -1375,11 +2091,19 @@ class InvoiceGenerator {
 
     y -=50;
 
-    this.page.drawLine({
-      start: { x: 400, y: y  },
-      end: { x: 520, y: y},
-      thickness: 1,
-    });
+    if(y  < bottomMargin) {
+      if(y < (y - (page_count * pageHeight) + bottomMargin )) {
+        this.page =  this.pdfDoc.addPage([595.28, 841.89]); //this.page..addPage([pageWidth, pageHeight]);
+        page_count++;
+        start_page_new =  0
+        y = -50
+      }
+     
+    }
+
+
+    this._drawLine(400, y, 520, y, 1);
+
     y -=15;
       this._drawText("AUTHORIZED SIGNATURE", 415, y, fontSize);
   }
@@ -1547,11 +2271,7 @@ class InvoiceGenerator {
     const fontSize = 8;
     const quantityX = 340;
 
-    this.page.drawLine({
-      start: { x: 40, y: y + 30 },
-      end: { x: 555, y: y + 30 },
-      thickness: 1,
-    });
+    this._drawLine(40, y+30, 555, y+30, 1);
 
     this._drawText("DESCRIPTION", 50, y + 15, fontSize, true);
     this._drawText("QUANTITY", 340, y + 15, fontSize, true);
@@ -1570,11 +2290,9 @@ class InvoiceGenerator {
 
     this._drawText("(USD)", x, y +5, fontSize, true);
 
-    this.page.drawLine({
-      start: { x: 40, y },
-      end: { x: 555, y },
-      thickness: 1,
-    });
+
+
+    this._drawLine(40, y, 555, y, 1);
 
     let currentY = y; 
     const rowHeight = 15; // ความสูงของแต่ละแถว
@@ -1786,15 +2504,17 @@ class InvoiceGenerator {
 
     }
 
-    this.page.drawLine({
-      start: { x: 500, y: currentY-2 },
-      end: { x: 555, y: currentY-2 },
-      thickness: 1,
-    });
+
+    this._drawLine(500, currentY-2, 555, currentY-2, 1);
 
     y = y+15
     // text = 'TOTAL ' + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
-    text = 'TOTAL  FOB' + this.data.loading_port ;
+    if(this.data.delivery_terms.slice(0, 3) == 'CFR' || this.data.delivery_terms.slice(0, 3) == 'CIF'){
+      text = 'TOTAL  FOB ' + this.data.loading_port ;
+    } else {
+      text = 'TOTAL ' + this.data.delivery_terms ;
+    }
+    
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
     x = this.page.getWidth() - textWidth - 120;
     this._drawText(text , x, y - 30, fontSize);
@@ -1848,15 +2568,12 @@ class InvoiceGenerator {
     }
 
     if(this.data.delivery_terms.slice(0, 3) == 'CFR' || this.data.delivery_terms.slice(0, 3) == 'CIF') {
-      this.page.drawLine({
-        start: { x: 500, y: y - 2 },
-        end: { x: 555, y: y - 2 },
-        thickness: 1,
-        color:  rgb(0, 0, 0),
-      });
+
+
+      this._drawLine(500, y-2, 555, y-2, 1);
 
       y -= 15
-      text = "TOTAL "  + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
+      text = 'TOTAL '  + this.data.delivery_terms;
       textWidth = this.font.widthOfTextAtSize(text, fontSize);
       x = this.page.getWidth() - textWidth - 120;
       this._drawText(text , x, y, fontSize);
@@ -1875,19 +2592,11 @@ class InvoiceGenerator {
     const gap = 2;              
     const offsetFromText = 4;   
 
-    this.page.drawLine({
-        start: { x: 500, y: y - offsetFromText },
-        end: { x: 555, y: y - offsetFromText },
-        thickness: thickness,
-        color:  rgb(0, 0, 0),
-    });
 
-    this.page.drawLine({
-        start: { x: 500, y: y - offsetFromText - gap - thickness },
-        end: { x: 555, y: y - offsetFromText - gap - thickness },
-        thickness: thickness,
-        color: rgb(0, 0, 0),
-    });
+    this._drawLine(500, y - offsetFromText, 555, y - offsetFromText, thickness);
+    this._drawLine(500, y - offsetFromText - gap - thickness, 555, y - offsetFromText - gap - thickness, thickness);
+
+
 
     y -= 15;
     this._drawText('TOTAL', quantityX - 30, y, fontSize);
@@ -1896,21 +2605,12 @@ class InvoiceGenerator {
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
     x = 380 - textWidth -5; 
 
-    this.page.drawLine({
-        start: { x: quantityX, y: y+15 - offsetFromText-2 },
-        end: { x: 380-5, y: y+15 - offsetFromText-2 },
-        thickness: thickness,
-        color: rgb(0, 0, 0),
-    });
+
+    this._drawLine(quantityX,  y+15 - offsetFromText-2, 380-5,  y+15 - offsetFromText-2, thickness);
 
     this._drawText(this.data.total_bag_qty, x, y, fontSize);
 
-    this.page.drawLine({
-        start: { x: quantityX, y: y - offsetFromText },
-        end: { x: 380-5, y: y - offsetFromText },
-        thickness: thickness,
-        color: rgb(0, 0, 0),
-    });
+    this._drawLine(quantityX, y - offsetFromText, 380-5, y - offsetFromText, thickness);
 
     if(bag_type_count > 1) {
       bag_type = 'BAGS';
@@ -1927,19 +2627,8 @@ class InvoiceGenerator {
 
       this._drawText(this.data.total_pallet_qty, x, y, fontSize);
 
-      this.page.drawLine({
-          start: { x: quantityX, y: y - offsetFromText },
-          end: { x: 380-5, y: y - offsetFromText },
-          thickness: thickness,
-          color: rgb(0, 0, 0),
-      });
-
-      this.page.drawLine({
-          start: { x: quantityX, y: y- offsetFromText - gap - thickness },
-          end: { x: 380-5, y: y- offsetFromText - gap - thickness },
-          thickness: thickness,
-          color: rgb(0, 0, 0),
-      });
+      this._drawLine(quantityX, y - offsetFromText, 380-5, y - offsetFromText, thickness);
+      this._drawLine(quantityX, y- offsetFromText - gap - thickness, 380-5, y- offsetFromText - gap - thickness, thickness);
 
       this._drawText('PALLETS', quantityX + 40, y, fontSize);
     }
@@ -2025,28 +2714,28 @@ class InvoiceGenerator {
     }
 
     let count_batch = 0;
-      if(this.data.line_items[0].batch){
-        for (const item of this.data.line_items) {
-        count_batch += item.batch.length 
-      }
+      if(this.data.custom_relations){
+        // for (const item of this.data.custom_relations) {
+        count_batch ++;
+      // }
     }
-
+    
     if(count_batch > 0){
       y -=15;
       this._drawText("BATCH NO : " , 40, y, fontSize);
       let i_batch = 1;
-      for (const item of this.data.line_items) {
-        for (const i of item.batch) {
-          this._drawText(i_batch + ") " + i.batch_no, valueX, y , fontSize);
+      for (const item of this.data.custom_relations) {
+        // for (const i of item.batch) {
+          this._drawText(i_batch + ") " + item.batch_no, valueX, y , fontSize);
           
-          let text_batch = i.bags + " Bags"
+          let text_batch = item.bags + " Bags"
           let textWidth = this.font.widthOfTextAtSize(text_batch, fontSize);
           let BagsX = valueX+130 - textWidth;
 
           this._drawText(text_batch, BagsX, y , fontSize);
           y -=15;
           i_batch++;
-        }
+        // }
       
       }
     } else {
@@ -2174,13 +2863,36 @@ class InvoiceGenerator {
       this._drawText(this.data.address6, valueX-30, startY, valueSize);
     }
 
-    // startY -= 15;
-    // this._drawText("SHIPPER :", leftX, startY, labelSize, false);
-    // this._drawText(this.data.shipper, valueX-30, startY, valueSize);
+    if(this.data.customer_name?.toUpperCase().includes("TOP BLOSSOM")) {
+      startY -= 15;
+      this._drawText("SHIPPER :", leftX, startY, labelSize, false);
+      // this._drawText(this.data.shipper, valueX-30, startY, valueSize);
+
+      const lines = this.data.shipper.split('\n');
+      console.log("lines",lines)
+      const numberOfLines = lines.length; 
+      
+      let a = 15
+      lines.forEach((line, index) => {
+        
+
+        a -= 15;
+        this._drawText(
+          line,
+          valueX-30,
+          startY+a,
+          valueSize
+        );
+      }); 
+      startY +=a;
+
+    }
+    
 
     
     startY -= 15;
     this._drawText("SHIP TO :", leftX, startY, labelSize, false);
+    
     this._drawText(this.data.destination_port, valueX-30, startY, valueSize);
 
     startY -= 15;
@@ -2193,49 +2905,56 @@ class InvoiceGenerator {
     this._drawText("INVOICE NO. :  ", rightLabelX, startYright, labelSize, false);
     this._drawText(this.data.invoice_number, rightValueX, startYright , valueSize);
 
-    if(this.data.consignee1 != null && this.data.consignee1 !="") {
-      startYright -=15
-      this._drawText("CONSIGNEE :  ", rightLabelX, startYright, labelSize, false);
 
-      const consignee = this._splitText(
-          this.data.consignee1,
-          150,       
-          this.font,
-          valueSize
-      );
+    if(this.data.customer_name?.toUpperCase().includes("TOP BLOSSOM")) {
 
-      consignee.forEach((line, index) => {
-        if(index > 0) {
-          startYright -= 15;
-          this._drawText(
-            line,
-            rightLabelX,
-            startYright,
+      if(this.data.consignee1 != null && this.data.consignee1 !="") {
+        startYright -=15
+        this._drawText("CONSIGNEE :  ", rightLabelX, startYright, labelSize, false);
+
+        const consignee = this._splitText(
+            this.data.consignee1,
+            150,       
+            this.font,
             valueSize
         );
-        } else {
-          this._drawText(
-            line,
-                rightValueX,
-            startYright,
-            valueSize
+
+        consignee.forEach((line, index) => {
+          if(index > 0) {
+            startYright -= 15;
+            this._drawText(
+              line,
+              rightLabelX,
+              startYright,
+              valueSize
           );
-        }
-        
-      }); 
+          } else {
+            this._drawText(
+              line,
+                  rightValueX,
+              startYright,
+              valueSize
+            );
+          }
+          
+        }); 
+      }
+      
+      // this._drawText(this.data.consignee1, rightValueX, startYright , valueSize);
+
+      if(this.data.consignee2 !="" && this.data.consignee2 != null) {
+        startYright -=15
+        this._drawText(this.data.consignee2, rightLabelX, startYright , valueSize);
+      }
+
+      if(this.data.consignee3 !="" && this.data.consignee3 != null) {
+        startYright -=15
+        this._drawText(this.data.consignee3, rightLabelX, startYright , valueSize);
+      }
+
     }
+
     
-    // this._drawText(this.data.consignee1, rightValueX, startYright , valueSize);
-
-    if(this.data.consignee2 !="" && this.data.consignee2 != null) {
-      startYright -=15
-      this._drawText(this.data.consignee2, rightLabelX, startYright , valueSize);
-    }
-
-    if(this.data.consignee3 !="" && this.data.consignee3 != null) {
-      startYright -=15
-      this._drawText(this.data.consignee3, rightLabelX, startYright , valueSize);
-    }
 
     y_end = startY
    
@@ -2249,11 +2968,9 @@ class InvoiceGenerator {
     const leftX = 40;
     const valueX = 200;
 
-    this.page.drawLine({
-      start: { x: 40, y: y + 25 },
-      end: { x: 555, y: y + 25 },
-      thickness: 1,
-    });
+
+
+    this._drawLine(40, y + 25, 555, y + 25, 1);
 
     y +=15;
     this._drawText("DESCRIPTION OF GOODS : ", leftX, y , fontSize, false);
@@ -2502,13 +3219,21 @@ class InvoiceGenerator {
 
     
   
-    y -=50;
+    y;
+    // this._drawLine(400, y , 520, y , 1, rgb(1, 1, 0));
+    if(y-30  < bottomMargin) {
+      if(y < (y - (page_count * pageHeight) + bottomMargin )) {
+        this.page =  this.pdfDoc.addPage([595.28, 841.89]); //this.page..addPage([pageWidth, pageHeight]);
+        page_count++;
+        start_page_new =  0
+        y = -50
+      }
+     
+    }
 
-    this.page.drawLine({
-      start: { x: 400, y: y  },
-      end: { x: 520, y: y},
-      thickness: 1,
-    });
+
+
+    this._drawLine(400, y , 520, y , 1);
     y -=15;
     this._drawText("AUTHORIZED SIGNATURE", 410, y, fontSize);
     y -=15;
