@@ -616,7 +616,7 @@ class InvoiceGenerator {
     }
 
     if(showFreightBreakdown) {
-      text = 'TOTAL  FOB' + this.data.loading_port ;
+      text = 'TOTAL FOB ' + (this.data.loading_port || '');
     }
 
 
@@ -1797,7 +1797,7 @@ class InvoiceGenerator {
 
     y = y+15
     // text = 'TOTAL ' + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
-    text = 'TOTAL  FOB' + this.data.loading_port ;
+    text = 'TOTAL FOB ' + (this.data.loading_port || '');
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
     x = this.page.getWidth() - textWidth - 120;
     this._drawText(text , x, y - 30, fontSize);
