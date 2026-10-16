@@ -26,7 +26,8 @@ class InvoiceGenerator {
   
   async generateInvoice() {
 
-    
+    start_page_new = 0;
+    page_count = 0;
     this.pdfDoc = await PDFDocument.create();
 
     this.pdfDoc.registerFontkit(fontkit);
@@ -109,16 +110,16 @@ class InvoiceGenerator {
     color = rgb(0, 0, 0)
   ) {
     if (y < bottomMargin) {
-      
-        if(y < (y - (page_count * pageHeight) + bottomMargin )) {
-           this.page =  this.pdfDoc.addPage([595.28, 841.89]); //this.page..addPage([pageWidth, pageHeight]);
-           page_count++;
-          start_page_new =  y
-          y = pageHeight - 50; 
-        } else {
-          y = y - start_page_new + pageHeight - 50 ;
-        }
-        // console.log("y",y)
+      // console.log("start",y , (y - (page_count * pageHeight) + bottomMargin));
+      if(y < (y - (page_count * pageHeight) + bottomMargin )) {
+          this.page =  this.pdfDoc.addPage([595.28, 841.89]); //this.page..addPage([pageWidth, pageHeight]);
+          page_count++;
+        start_page_new =  y
+        y = pageHeight - 50; 
+      } else {
+        y = y - start_page_new + pageHeight - 50 ;
+      }
+      // console.log("y",y)
     }
     this.page.drawText(String(text || ""), {
       x,
@@ -876,11 +877,9 @@ class InvoiceGenerator {
     }
 
     let count_batch = 0;
-      if(this.data.custom_relations){
-        // for (const item of this.data.custom_relations) {
-        count_batch ++;
-      // }
-    }
+
+    count_batch = this.data.custom_relations.length;
+    console.log("this.data.custom_relations.length",this.data.custom_relations.length)
     
     if(count_batch > 0){
       y -=15;
@@ -1124,7 +1123,7 @@ class InvoiceGenerator {
           } else {
             this._drawText(
               line,
-              rightValueX,
+              rightValueX + 5,
               rightY,
               valueSize
             );
@@ -1279,12 +1278,13 @@ class InvoiceGenerator {
         maximumFractionDigits: 2
       }):" ") + " MT" || "0.00", 320, currentY - 15, fontSize);
 
-      this._drawText((Number(item.unit_price)+Number(item.freight_cost_usd)+Number(item.insurance_cost_usd)).toLocaleString('en-US', {
+      let unit_price_new = (Number(item.unit_price)+Number(item.freight_cost_usd)+Number(item.insurance_cost_usd))
+      this._drawText(unit_price_new.toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       }) || "0.00", 450, currentY - 15, fontSize);
 
-      const amountText = Number(item.total_amount).toLocaleString('en-US', {
+      const amountText = (unit_price_new*Number(item.quantity)).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
@@ -1600,11 +1600,7 @@ class InvoiceGenerator {
     }
 
     let count_batch = 0;
-      if(this.data.custom_relations){
-        // for (const item of this.data.custom_relations) {
-        count_batch ++;
-      // }
-    }
+    count_batch = this.data.custom_relations.length;
     
     if(count_batch > 0){
       y -=15;
@@ -2714,11 +2710,8 @@ class InvoiceGenerator {
     }
 
     let count_batch = 0;
-      if(this.data.custom_relations){
-        // for (const item of this.data.custom_relations) {
-        count_batch ++;
-      // }
-    }
+
+    count_batch = this.data.custom_relations.length;
     
     if(count_batch > 0){
       y -=15;
