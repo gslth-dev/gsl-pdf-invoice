@@ -360,7 +360,7 @@ class InvoiceGenerator {
     }
 
     console.log("this.data.due_date",this.data.due_date)
-    if(this.data.show_due_date == true) {
+    if(this.data.show_due_date == true && !this.data.customer_name?.toUpperCase().includes("ITC LIMITED")) {
       const due_date_obj = new Date(this.data.due_date);
 
       const due_date_formattedDateUTC = due_date_obj.toLocaleDateString('en-US', {
@@ -371,7 +371,7 @@ class InvoiceGenerator {
       }).toUpperCase();
 
       this._drawText("DUE DATE :", rightLabelX, rightY, labelSize, false);
-      this._drawText(due_date_formattedDateUTC, rightValueX, rightY, valueSize);
+      this._drawText((this.data.due_date == "" || this.data.due_date == null)?"":due_date_formattedDateUTC, rightValueX, rightY, valueSize);
     }
     
 
@@ -387,7 +387,7 @@ class InvoiceGenerator {
     }).toUpperCase();
 
     this._drawText("ETD :", rightLabelX, rightY, labelSize, false);
-    this._drawText(etd_formattedDate, rightValueX, rightY, valueSize);
+    this._drawText((this.data.etd == "" || this.data.etd == null)?"":etd_formattedDate, rightValueX, rightY, valueSize);
 
 
     rightY -= lineGap 
@@ -401,7 +401,7 @@ class InvoiceGenerator {
     }).toUpperCase();
 
     this._drawText("ETA :", rightLabelX, rightY, labelSize, false);
-    this._drawText(eta_formattedDate, rightValueX, rightY, valueSize);
+    this._drawText((this.data.eta == "" || this.data.eta == null)?"":eta_formattedDate, rightValueX, rightY, valueSize);
 
     y_end = rightY
   }
@@ -438,8 +438,11 @@ class InvoiceGenerator {
     const rowHeight = 15; // ความสูงของแต่ละแถว
     let bag_type = '';
     let bag_type_count = 0;
+    let index_total = this.data.line_items.length;
+    let index_line_items = 0;
 
     for (const item of this.data.line_items) {
+      index_line_items++;
       console.log("item.bag_type",item.bag_type)
       if(bag_type != item.bag_type) {
         bag_type = item.bag_type
@@ -477,7 +480,7 @@ class InvoiceGenerator {
         maximumFractionDigits: 2
       }):" ") + " MT" || "0.00", 320, currentY - 15, fontSize);
 
-      this._drawText(Number(item.unit_price).toLocaleString('en-US', {
+      this._drawText(Number(item.fob_price).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       }) || "0.00", 450, currentY - 15, fontSize);
@@ -495,6 +498,9 @@ class InvoiceGenerator {
       }
        // วาด Line Amount
       this._drawText(amountText, amountX, currentY - 15, fontSize);
+      if(index_line_items == index_total) {
+        this._drawLine(500, currentY-2-15, 555, currentY-2-15, 1);
+      }
 
       if(item.invoice_description2 != "") {
         currentY -=15
@@ -649,7 +655,7 @@ class InvoiceGenerator {
 
   
 
-    this._drawLine(500, currentY-2, 555, currentY-2, 1);
+    // this._drawLine(500, currentY-2, 555, currentY-2, 1);
 
     y = y+15
 
@@ -1085,11 +1091,7 @@ class InvoiceGenerator {
     this._drawText("DATE :", rightLabelX+100, rightY, labelSize, false);
     this._drawText(date_formattedDateUTC, rightLabelX+135, rightY, valueSize);
 
-    if(this.data.customer_name?.toUpperCase().includes("MITACHARM") || this.data.customer_name?.toUpperCase().includes("XIAMEN")) {
-      this._drawText("LC No. :", rightLabelX, rightY - (lineGap * 2), labelSize, false);
-      this._drawText(this.data.lc_no, rightValueX, rightY - (lineGap * 2), valueSize);
-
-    }
+   
     
 
 
@@ -1097,6 +1099,13 @@ class InvoiceGenerator {
     rightY -= (lineGap * 3)
     this._drawText("SHIP TO :", rightLabelX, rightY, labelSize, false);
     this._drawText(this.data.destination_port, rightValueX, rightY, valueSize);
+
+    if(this.data.customer_name?.toUpperCase().includes("MITACHARM") || this.data.customer_name?.toUpperCase().includes("XIAMEN")) {
+      this._drawText("L/C NO :", rightLabelX, rightY - (lineGap), labelSize, false);
+      this._drawText(this.data.lc_no, rightValueX, rightY - (lineGap), valueSize);
+
+    }
+    
 
     if(this.data.customer_name?.toUpperCase().includes("TOP BLOSSOM")) {
 
@@ -1158,7 +1167,7 @@ class InvoiceGenerator {
     }
 
     console.log("this.data.due_date",this.data.due_date)
-    if(this.data.show_due_date == true) {
+    if(this.data.show_due_date == true && !this.data.customer_name?.toUpperCase().includes("ITC LIMITED")) {
       const due_date_obj = new Date(this.data.due_date);
 
       const due_date_formattedDateUTC = due_date_obj.toLocaleDateString('en-US', {
@@ -1169,7 +1178,7 @@ class InvoiceGenerator {
       }).toUpperCase();
 
       this._drawText("DUE DATE :", rightLabelX, rightY, labelSize, false);
-      this._drawText(due_date_formattedDateUTC, rightValueX, rightY, valueSize);
+      this._drawText((this.data.due_date == "" || this.data.due_date == null)?"":due_date_formattedDateUTC, rightValueX, rightY, valueSize);
     }
 
     }
@@ -1188,7 +1197,7 @@ class InvoiceGenerator {
     }).toUpperCase();
 
     this._drawText("ETD :", rightLabelX, rightY, labelSize, false);
-    this._drawText(etd_formattedDate, rightValueX, rightY, valueSize);
+    this._drawText((this.data.etd == "" || this.data.etd == null)?"":etd_formattedDate, rightValueX, rightY, valueSize);
 
 
     rightY -= lineGap 
@@ -1202,7 +1211,7 @@ class InvoiceGenerator {
     }).toUpperCase();
 
     this._drawText("ETA :", rightLabelX, rightY, labelSize, false);
-    this._drawText(eta_formattedDate, rightValueX, rightY, valueSize);
+    this._drawText((this.data.eta == "" || this.data.eta == null)?"":eta_formattedDate, rightValueX, rightY, valueSize);
 
     y_end = rightY
   }
@@ -1240,7 +1249,10 @@ class InvoiceGenerator {
     let bag_type = '';
     let bag_type_count = 0;
 
+    let index_total = this.data.line_items.length;
+    let index_line_items = 0;
     for (const item of this.data.line_items) {
+      index_line_items++;
       console.log("item.bag_type",item.bag_type)
       if(bag_type != item.bag_type) {
         bag_type = item.bag_type
@@ -1278,7 +1290,7 @@ class InvoiceGenerator {
         maximumFractionDigits: 2
       }):" ") + " MT" || "0.00", 320, currentY - 15, fontSize);
 
-      let unit_price_new = (Number(item.unit_price)+Number(item.freight_cost_usd)+Number(item.insurance_cost_usd))
+      let unit_price_new = Number(item.unit_price) ; // (Number(item.unit_price)+Number(item.freight_cost_usd)+Number(item.insurance_cost_usd))
       this._drawText(unit_price_new.toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
@@ -1295,8 +1307,14 @@ class InvoiceGenerator {
         textWidth = this.font.widthOfTextAtSize(amountText, fontSize);
         amountX = this.page.getWidth() - textWidth - 40;
       }
+
+     
        // วาด Line Amount
       this._drawText(amountText, amountX, currentY - 15, fontSize);
+
+      if(index_line_items == index_total) {
+        this._drawLine(500, currentY-2-15, 555, currentY-2-15, 1);
+      }
 
       if(item.invoice_description2 != "") {
         currentY -=15
@@ -1450,14 +1468,18 @@ class InvoiceGenerator {
     }
 
 
-    this._drawLine(500, currentY-2, 555, currentY-2, 1);
-
+   
+    // this._drawLine(500, currentY-2, 555, currentY-2, 1);
     y = y+15
 
     // custom subtotal //'TOTAL 
     text = 'TOTAL ' + this.data.delivery_terms;
     if(this.data.customer_name == "MITACHARM CORPORATION"  ||  this.data.customer_name == "ITC LIMITED"  ||  this.data.customer_name == "Sanguan Wongse Japan Co.,Ltd."   ||  this.data.customer_name =="International Additive Concepts Inc.") {
         text = 'TOTAL ' + this.data.delivery_terms;
+    }
+
+    if(this.data.customer_name?.toUpperCase().includes("XIAMEN")) {
+      text = 'TOTAL ' + this.data.delivery_terms+ " (Incoterm 2020)".toUpperCase()
     }
   
     textWidth = this.font.widthOfTextAtSize(text, fontSize);
@@ -1669,6 +1691,43 @@ class InvoiceGenerator {
     this._drawText("COUNTRY OF ORIGIN : THAILAND", 40, y, fontSize);
     y -=15;
     this._drawText("REMARKS : " +this.data.remark, 40, y, fontSize);
+
+    if(this.data.customer_name?.toUpperCase().includes("CHYUAN HARVEST INDUSTRIES") || this.data.customer_name?.toUpperCase().includes("ITC LIMITED")) {
+      if(this.data.bank_name != "" || this.data.bank_name != null) {
+        y -=15;
+        this._drawText("BANK NAME ", 40, y, fontSize);
+        this._drawText(": "+ this.data.bank_name, 140, y, fontSize);
+      }
+      
+      if(this.data.bank_address != "" || this.data.bank_address != null) {
+        y -=15;
+        this._drawText("BANK ADDRESS ", 40, y, fontSize);
+        this._drawText(": "+ this.data.bank_address, 140, y, fontSize);
+      }
+      
+
+      if(this.data.account_name != "" || this.data.account_name != null) {
+        y -=15;
+        this._drawText("ACCOUNT NAME ", 40, y, fontSize);
+        this._drawText(": "+ this.data.account_name, 140, y, fontSize);
+      }
+
+      
+      if(this.data.account_number != "" || this.data.account_number != null) {
+        y -=15;
+        this._drawText("ACCOUNT NO ", 40, y, fontSize);
+        this._drawText(": "+ this.data.account_number, 140, y, fontSize);
+      }
+      
+
+      if(this.data.swift != "" || this.data.swift != null) {
+        y -=15;
+        this._drawText("S.W.I.F.T ", 40, y, fontSize);
+        this._drawText(": "+ (this.data.swift?this.data.swift:""), 140, y, fontSize);
+      }
+      
+    }
+
     y -=15;
     this._drawText("WE HEREBY CERTIFY THIS INVOICE IS TRUE AND CORRECT.", 40, y, fontSize);
 
@@ -2208,6 +2267,12 @@ class InvoiceGenerator {
     this._drawText("SHIP TO :", rightLabelX, rightY, labelSize, false);
     this._drawText(this.data.destination_port, rightValueX, rightY, valueSize);
 
+    if(this.data.customer_name?.toUpperCase().includes("MITACHARM") || this.data.customer_name?.toUpperCase().includes("XIAMEN")) {
+      this._drawText("L/C NO :", rightLabelX, rightY - (lineGap), labelSize, false);
+      this._drawText(this.data.lc_no, rightValueX, rightY - (lineGap), valueSize);
+
+    }
+
 
 
     console.log("this.data.due_date ",this.data.due_date )
@@ -2216,7 +2281,7 @@ class InvoiceGenerator {
     if(rightY == term_line) {
       rightY += lineGap;
     }
-    if(this.data.show_due_date == true) {
+    if(this.data.show_due_date == true && !this.data.customer_name?.toUpperCase().includes("ITC LIMITED")) {
       const due_date_obj = new Date(this.data.due_date);
 
       const due_date_formattedDateUTC = due_date_obj.toLocaleDateString('en-US', {
@@ -2227,7 +2292,7 @@ class InvoiceGenerator {
       }).toUpperCase();
 
       this._drawText("DUE DATE :", rightLabelX, rightY, labelSize, false);
-      this._drawText(due_date_formattedDateUTC, rightValueX, rightY, valueSize);
+      this._drawText((this.data.due_date == "" || this.data.due_date == null)?"":due_date_formattedDateUTC, rightValueX, rightY, valueSize);
     }
     
 
@@ -2243,7 +2308,7 @@ class InvoiceGenerator {
     }).toUpperCase();
 
     this._drawText("ETD :", rightLabelX, rightY, labelSize, false);
-    this._drawText(etd_formattedDate, rightValueX, rightY, valueSize);
+    this._drawText((this.data.etd == "" || this.data.etd == null)?"":etd_formattedDate, rightValueX, rightY, valueSize);
 
 
     rightY -= lineGap 
@@ -2257,7 +2322,7 @@ class InvoiceGenerator {
     }).toUpperCase();
 
     this._drawText("ETA :", rightLabelX, rightY, labelSize, false);
-    this._drawText(eta_formattedDate, rightValueX, rightY, valueSize);
+    this._drawText((this.data.eta == "" || this.data.eta == null)?"":eta_formattedDate, rightValueX, rightY, valueSize);
 
     y_end = rightY
   }
@@ -2294,9 +2359,11 @@ class InvoiceGenerator {
     const rowHeight = 15; // ความสูงของแต่ละแถว
     let bag_type_count = 0;
     let bag_type = '';
+    let index_total = this.data.line_items.length;
+    let index_line_items = 0;
 
     for (const item of this.data.line_items) {
-
+      index_line_items++;
       if(bag_type != item.bag_type) {
         bag_type = item.bag_type
         bag_type_count ++;
@@ -2332,7 +2399,7 @@ class InvoiceGenerator {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       }):" ") + " MT" || "0.00", 320, currentY - 15, fontSize);
-      this._drawText(Number(item.unit_price).toLocaleString('en-US', {
+      this._drawText(Number(item.fob_price).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       }) || "0.00", 450, currentY - 15, fontSize);
@@ -2351,6 +2418,10 @@ class InvoiceGenerator {
       
       // วาด Line Amount
       this._drawText(amountText, amountX, currentY - 15, fontSize);
+
+      if(index_line_items == index_total) {
+        this._drawLine(500, currentY-2-15, 555, currentY-2-15, 1);
+      }
 
 
        if(item.invoice_description2 != "") {
@@ -2501,7 +2572,7 @@ class InvoiceGenerator {
     }
 
 
-    this._drawLine(500, currentY-2, 555, currentY-2, 1);
+    // this._drawLine(500, currentY-2, 555, currentY-2, 1);
 
     y = y+15
     // text = 'TOTAL ' + this.data.delivery_terms.slice(0, 3) +' ' + this.data.shipped_to;
@@ -2775,6 +2846,43 @@ class InvoiceGenerator {
     this._drawText("COUNTRY OF ORIGIN : THAILAND", 40, y, fontSize);
     y -=15;
     this._drawText("REMARKS : " +this.data.remark, 40, y, fontSize);
+
+    if(this.data.customer_name?.toUpperCase().includes("CHYUAN HARVEST INDUSTRIES") || this.data.customer_name?.toUpperCase().includes("ITC LIMITED")) {
+      if(this.data.bank_name != "" || this.data.bank_name != null) {
+        y -=15;
+        this._drawText("BANK NAME ", 40, y, fontSize);
+        this._drawText(": "+ this.data.bank_name, 140, y, fontSize);
+      }
+      
+      if(this.data.bank_address != "" || this.data.bank_address != null) {
+        y -=15;
+        this._drawText("BANK ADDRESS ", 40, y, fontSize);
+        this._drawText(": "+ this.data.bank_address, 140, y, fontSize);
+      }
+      
+
+      if(this.data.account_name != "" || this.data.account_name != null) {
+        y -=15;
+        this._drawText("ACCOUNT NAME ", 40, y, fontSize);
+        this._drawText(": "+ this.data.account_name, 140, y, fontSize);
+      }
+
+      
+      if(this.data.account_number != "" || this.data.account_number != null) {
+        y -=15;
+        this._drawText("ACCOUNT NO ", 40, y, fontSize);
+        this._drawText(": "+ this.data.account_number, 140, y, fontSize);
+      }
+      
+
+      if(this.data.swift != "" || this.data.swift != null) {
+        y -=15;
+        this._drawText("S.W.I.F.T ", 40, y, fontSize);
+        this._drawText(": "+ (this.data.swift?this.data.swift:""), 140, y, fontSize);
+      }
+      
+    }
+
     y -=15;
     this._drawText("WE HEREBY CERTIFY THIS INVOICE IS TRUE AND CORRECT.", 40, y, fontSize);
 
@@ -2897,6 +3005,13 @@ class InvoiceGenerator {
 
     this._drawText("INVOICE NO. :  ", rightLabelX, startYright, labelSize, false);
     this._drawText(this.data.invoice_number, rightValueX, startYright , valueSize);
+
+    if(this.data.customer_name?.toUpperCase().includes("MITACHARM") || this.data.customer_name?.toUpperCase().includes("XIAMEN")) {
+      startYright -= 15;
+      this._drawText("L/C NO :", rightLabelX, startYright, labelSize, false);
+      this._drawText(this.data.lc_no, rightValueX, startYright, valueSize);
+
+    }
 
 
     if(this.data.customer_name?.toUpperCase().includes("TOP BLOSSOM")) {
@@ -3159,7 +3274,7 @@ class InvoiceGenerator {
       timeZone: 'UTC' // Forces UTC interpretation
     }).toUpperCase();
 
-    this._drawText( etd_date_formattedDateUTC , valueX, y , fontSize);
+    this._drawText((this.data.etd == "" || this.data.etd == null)?"":etd_date_formattedDateUTC , valueX, y , fontSize);
 
     y -=15;
     this._drawText("ETA : ", leftX, y , fontSize, false);
@@ -3172,7 +3287,7 @@ class InvoiceGenerator {
       year: 'numeric',
       timeZone: 'UTC' // Forces UTC interpretation
     }).toUpperCase();
-    this._drawText( eta_date_formattedDateUTC , valueX, y , fontSize);
+    this._drawText((this.data.eta == "" || this.data.eta == null)?"":eta_date_formattedDateUTC , valueX, y , fontSize);
 
      y -=15;
     this._drawText("TOTAL NET WEIGHT : ", leftX, y , fontSize, false);
