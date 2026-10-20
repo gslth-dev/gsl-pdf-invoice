@@ -458,7 +458,7 @@ class InvoiceGenerator {
       lines.forEach((line, index) => {
         const product_name = this._splitText(
           line,
-          250,       
+          300,       
           this.font,
           fontSize
         );
@@ -1268,7 +1268,7 @@ class InvoiceGenerator {
       lines.forEach((line, index) => {
         const product_name = this._splitText(
           line,
-          250,       
+          300,       
           this.font,
           fontSize
         );
@@ -2379,7 +2379,7 @@ class InvoiceGenerator {
       lines.forEach((line, index) => {
         const product_name = this._splitText(
           line,
-          250,       
+          300,       
           this.font,
           fontSize
         );
