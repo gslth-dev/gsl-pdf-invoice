@@ -485,7 +485,7 @@ class InvoiceGenerator {
         maximumFractionDigits: 2
       }) || "0.00", 450, currentY - 15, fontSize);
 
-      const amountText = Number(item.total_amount).toLocaleString('en-US', {
+      const amountText = Number(Number(item.fob_price) * Number(item.quantity)).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
@@ -2436,7 +2436,7 @@ class InvoiceGenerator {
         maximumFractionDigits: 2
       }) || "0.00", 450, currentY - 15, fontSize);
 
-      const amountText = Number(item.total_amount).toLocaleString('en-US', {
+      const amountText = Number(Number(item.fob_price) * Number(item.quantity)).toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
       });
