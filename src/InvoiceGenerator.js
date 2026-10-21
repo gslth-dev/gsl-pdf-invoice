@@ -959,7 +959,22 @@ class InvoiceGenerator {
 
     if(this.data.for_delivery_to != "" && this.data.for_delivery_to != null) {
       y -=15;
-      this._drawText("FOR DELIVERY TO : " +this.data.for_delivery_to, 40, y, fontSize);
+      this._drawText("FOR DELIVERY TO :", 40, y, fontSize);
+      const for_delivery_to = this.data.for_delivery_to.split('\n');
+      console.log("lines",for_delivery_to)
+      const numberOfLines = for_delivery_to.length; 
+      
+      let a = 15
+      for_delivery_to.forEach((line, index) => {
+        a -= 15;
+        this._drawText(
+              line,
+              120,
+              y+a,
+              fontSize
+            );
+      }); 
+      y +=a;
     }
     
   }
@@ -1733,8 +1748,25 @@ class InvoiceGenerator {
 
     if(this.data.for_delivery_to != "" && this.data.for_delivery_to != null) {
       y -=15;
-      this._drawText("FOR DELIVERY TO : " +this.data.for_delivery_to, 40, y, fontSize);
+      this._drawText("FOR DELIVERY TO :", 40, y, fontSize);
+      const for_delivery_to = this.data.for_delivery_to.split('\n');
+      console.log("lines",for_delivery_to)
+      const numberOfLines = for_delivery_to.length; 
+      
+      let a = 15
+      for_delivery_to.forEach((line, index) => {
+        a -= 15;
+        this._drawText(
+              line,
+              120,
+              y+a,
+              fontSize
+            );
+      }); 
+      y +=a;
+
     }
+
     
   }
 
@@ -2888,7 +2920,22 @@ class InvoiceGenerator {
 
     if(this.data.for_delivery_to != "" && this.data.for_delivery_to != null) {
       y -=15;
-      this._drawText("FOR DELIVERY TO : " +this.data.for_delivery_to, 40, y, fontSize);
+      this._drawText("FOR DELIVERY TO :", 40, y, fontSize);
+      const for_delivery_to = this.data.for_delivery_to.split('\n');
+      console.log("lines",for_delivery_to)
+      const numberOfLines = for_delivery_to.length; 
+      
+      let a = 15
+      for_delivery_to.forEach((line, index) => {
+        a -= 15;
+        this._drawText(
+              line,
+              120,
+              y+a,
+              fontSize
+            );
+      }); 
+      y +=a;
     }
     
   }
