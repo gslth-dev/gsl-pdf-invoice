@@ -112,10 +112,12 @@ class InvoiceGenerator {
     if (y < bottomMargin) {
       // console.log("start",y , (y - (page_count * pageHeight) + bottomMargin));
       if(y < (y - (page_count * pageHeight) + bottomMargin )) {
-          this.page =  this.pdfDoc.addPage([595.28, 841.89]); //this.page..addPage([pageWidth, pageHeight]);
-          page_count++;
-        start_page_new =  y
-        y = pageHeight - 50; 
+        this.page =  this.pdfDoc.addPage([595.28, 841.89]); //this.page..addPage([pageWidth, pageHeight]);
+        this._drawHeader();
+        page_count++;
+        start_page_new =  y+20
+        // console.log("start_page_new",start_page_new)
+        y = -200; 
       } else {
         y = y - start_page_new + pageHeight - 50 ;
       }
@@ -2181,9 +2183,10 @@ class InvoiceGenerator {
     if(y  < bottomMargin) {
       if(y < (y - (page_count * pageHeight) + bottomMargin )) {
         this.page =  this.pdfDoc.addPage([595.28, 841.89]); //this.page..addPage([pageWidth, pageHeight]);
+        this._drawHeader();
         page_count++;
         start_page_new =  0
-        y = -50
+        y = -80
       }
      
     }
@@ -3379,9 +3382,10 @@ class InvoiceGenerator {
     if(y-30  < bottomMargin) {
       if(y < (y - (page_count * pageHeight) + bottomMargin )) {
         this.page =  this.pdfDoc.addPage([595.28, 841.89]); //this.page..addPage([pageWidth, pageHeight]);
+        this._drawHeader();
         page_count++;
         start_page_new =  0
-        y = -50
+        y = -80
       }
      
     }
