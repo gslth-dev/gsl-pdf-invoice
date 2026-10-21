@@ -962,7 +962,7 @@ class InvoiceGenerator {
     if(this.data.for_delivery_to != "" && this.data.for_delivery_to != null) {
       y -=15;
       this._drawText("FOR DELIVERY TO :", 40, y, fontSize);
-      const for_delivery_to = this.data.for_delivery_to.split('\n');
+      const for_delivery_to = this.data.for_delivery_to.toUpperCase().split('\n');
       console.log("lines",for_delivery_to)
       const numberOfLines = for_delivery_to.length; 
       
@@ -1751,7 +1751,7 @@ class InvoiceGenerator {
     if(this.data.for_delivery_to != "" && this.data.for_delivery_to != null) {
       y -=15;
       this._drawText("FOR DELIVERY TO :", 40, y, fontSize);
-      const for_delivery_to = this.data.for_delivery_to.split('\n');
+      const for_delivery_to = this.data.for_delivery_to.toUpperCase().split('\n');
       console.log("lines",for_delivery_to)
       const numberOfLines = for_delivery_to.length; 
       
@@ -2924,7 +2924,7 @@ class InvoiceGenerator {
     if(this.data.for_delivery_to != "" && this.data.for_delivery_to != null) {
       y -=15;
       this._drawText("FOR DELIVERY TO :", 40, y, fontSize);
-      const for_delivery_to = this.data.for_delivery_to.split('\n');
+      const for_delivery_to = this.data.for_delivery_to.toUpperCase().split('\n');
       console.log("lines",for_delivery_to)
       const numberOfLines = for_delivery_to.length; 
       
