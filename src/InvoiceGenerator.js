@@ -67,6 +67,11 @@ class InvoiceGenerator {
       this._drawCustomerInfoPack();
       this._drawTablePack();
       this._drawFooterPack();
+    } else if (this.data.invoice_type == "certificate_of_origin") {
+      this._drawTitleCOO();
+      this._drawCustomerInfoCOO();
+      this._drawBodyCOO();
+      this._drawFooterPack();
     } else if (this.data.invoice_type == "customs_invoice" || this.data.invoice_type == "commercial_invoice") {
       this._drawTitle();
       this._drawCustomerInfo();
@@ -3398,6 +3403,123 @@ class InvoiceGenerator {
     y -=15;
     let text ="GENERAL STARCH LIMITED AS MANUFACTURER"
     this._drawText(text, 365, y, fontSize);
+  }
+
+  _drawTitleCOO() {
+    const text = "CERTIFICATE OF ORIGIN";
+    const textWidth = this.bold.widthOfTextAtSize(text, 14);
+    const x = (this.page.getWidth() - textWidth) / 2;
+
+    this._drawText(text, x, 710, 14, true);
+
+    const date_obj = this.data.invoice_date ? new Date(this.data.invoice_date) : new Date();
+    const date_formattedDateUTC = date_obj.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC'
+    }).toUpperCase();
+
+    this._drawText("DATE : ", 440, 730, 8, false);
+    this._drawText(date_formattedDateUTC, 470, 730, 8);
+  }
+
+  _drawCustomerInfoCOO() {
+    const labelSize = 8;
+    const valueSize = 8;
+
+    const leftX = 40;
+    const valueX = 112;
+
+    const rightLabelX = 400;
+    const rightValueX = 460;
+
+    let startY = 685;
+    let startYright = 670;
+    const lineGap = 15;
+
+    this._drawText("MADE OUT TO : WHOM IT MAY CONCERN", leftX, startY, labelSize, true);
+
+    startY -= lineGap;
+    this._drawText("SOLD TO : ", leftX, startY, labelSize, false);
+    this._drawText((this.data.customer_name || "").toUpperCase(), valueX, startY, valueSize);
+
+    for (const key of ["address1", "address2", "address3", "address4", "address5", "address6"]) {
+      if (this.data[key]) {
+        startY -= lineGap;
+        this._drawText(this.data[key], valueX, startY, valueSize);
+      }
+    }
+
+    startY -= lineGap;
+    this._drawText("SHIPMENT BY :", leftX, startY, labelSize, false);
+    this._drawText((this.data.vessel || "").toUpperCase(), valueX, startY, valueSize);
+
+    startY -= lineGap;
+    this._drawText("FROM :", leftX, startY, labelSize, false);
+    this._drawText(this.data.loading_port, valueX, startY, valueSize);
+
+    startY -= lineGap;
+    this._drawText("SHIP TO :", leftX, startY, labelSize, false);
+    this._drawText(this.data.destination_port, valueX, startY, valueSize);
+
+    startY -= lineGap;
+    this._drawText("CONTRACT NO. : ", leftX, startY, labelSize, false);
+    this._drawText(this.data.po_number, valueX, startY, valueSize);
+
+    this._drawText("INVOICE NO. : ", rightLabelX, startYright, labelSize, false);
+    this._drawText(this.data.invoice_number, rightValueX, startYright, valueSize);
+
+    if(this.data.customer_name?.toUpperCase().includes("MITACHARM") || this.data.customer_name?.toUpperCase().includes("XIAMEN")) {
+      startYright -= lineGap;
+      this._drawText("L/C NO : ", rightLabelX, startYright, labelSize, false);
+      this._drawText(this.data.lc_no, rightValueX, startYright, valueSize);
+    }
+
+    // TODO: รอคอนเฟิร์มชื่อ field B/L กับลูกค้า/backend — แสดงเฉพาะเมื่อมีค่า
+    if (this.data.bl_no) {
+      startYright -= lineGap;
+      this._drawText("B/L NO. : ", rightLabelX, startYright, labelSize, false);
+      this._drawText(this.data.bl_no, rightValueX, startYright, valueSize);
+    }
+
+    y_end = startY;
+  }
+
+  _drawBodyCOO() {
+    let y = y_end - 15;
+    const fontSize = 8;
+    const leftX = 40;
+    const valueX = 150;
+
+    this._drawLine(40, y, 555, y, 1);
+
+    y -= 20;
+    this._drawText("DESCRIPTION OF GOODS : ", leftX, y, fontSize, false);
+
+    for (const item of this.data.line_items || []) {
+      const descs = [
+        item.invoice_description,
+        item.invoice_description2,
+        item.invoice_description3,
+        item.invoice_description4,
+        item.invoice_description5,
+        item.invoice_description6,
+      ].filter(d => d != null && d != "");
+
+      for (const d of descs) {
+        this._drawText(d, valueX, y, fontSize);
+        y -= 15;
+      }
+    }
+
+    y -= 25;
+    this._drawText(
+      "WE HEREBY DECLARE THAT THE ABOVE MENTIONED PRODUCTS WERE PRODUCED IN THAILAND BY GENERAL STARCH LIMITED",
+      leftX, y, fontSize, true
+    );
+
+    y_end = y - 120;
   }
 
   _splitText(text, maxWidth, font, size) {
