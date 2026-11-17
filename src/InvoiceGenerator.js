@@ -14,6 +14,33 @@ let page_count = 0;
 const pageWidth = 595.28;
 const pageHeight = 841.89;
 let start_page_new = 0;
+
+// เอกสาร certificate: แต่ละ invoice_type ใช้ส่วนหัว/ลายเซ็นร่วมกัน
+const CERT_FONT_SIZE = 9;
+const CERT_LINE_GAP = 16;
+const CERTIFICATE_TYPES = {
+  certificate_of_origin: {
+    title: "CERTIFICATE OF ORIGIN",
+    madeOutTo: true,
+    showEtdEta: false,
+    signer: "MANUFACTURER",
+    body: "_drawBodyCOO",
+  },
+  certificate_of_non_wood: {
+    title: "CERTIFICATE OF NON-WOOD PACKING MATERIAL",
+    madeOutTo: true,
+    showEtdEta: true,
+    signer: "BENEFICIARY",
+    body: "_drawBodyNonWood",
+  },
+  certificate_of_quality: {
+    title: "CERTIFICATE OF QUALITY AND QUANTITY",
+    madeOutTo: false,
+    showEtdEta: true,
+    signer: "BENEFICIARY",
+    body: "_drawBodyQuality",
+  },
+};
 class InvoiceGenerator {
   static HEADER_IMAGE = path.resolve(
     __dirname,
@@ -67,11 +94,8 @@ class InvoiceGenerator {
       this._drawCustomerInfoPack();
       this._drawTablePack();
       this._drawFooterPack();
-    } else if (this.data.invoice_type == "certificate_of_origin") {
-      this._drawTitleCOO();
-      this._drawCustomerInfoCOO();
-      this._drawBodyCOO();
-      this._drawFooterPack();
+    } else if (CERTIFICATE_TYPES[this.data.invoice_type]) {
+      this._drawCertificate(CERTIFICATE_TYPES[this.data.invoice_type]);
     } else if (this.data.invoice_type == "customs_invoice" || this.data.invoice_type == "commercial_invoice") {
       this._drawTitle();
       this._drawCustomerInfo();
@@ -3405,97 +3429,105 @@ class InvoiceGenerator {
     this._drawText(text, 365, y, fontSize);
   }
 
-  _drawTitleCOO() {
-    const text = "CERTIFICATE OF ORIGIN";
-    const textWidth = this.bold.widthOfTextAtSize(text, 14);
-    const x = (this.page.getWidth() - textWidth) / 2;
+  // ===== Certificates (COO / Non-Wood / Quality) =====
+  // ทั้ง 3 type ใช้ส่วนหัวและลายเซ็นร่วมกัน ต่างกันแค่ config + body
 
-    this._drawText(text, x, 710, 14, true);
+  _drawCertificate(cfg) {
+    this._drawCertTitle(cfg.title);
+    let y = this._drawCertInfo(cfg);
+    y = this[cfg.body](y);
+    this._drawCertFooter(y, cfg.signer);
+  }
 
-    const date_obj = this.data.invoice_date ? new Date(this.data.invoice_date) : new Date();
-    const date_formattedDateUTC = date_obj.toLocaleDateString('en-US', {
+  _formatCertDate(value) {
+    if (value == null || value === "") return "";
+    return new Date(value).toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
       year: 'numeric',
       timeZone: 'UTC'
     }).toUpperCase();
-
-    this._drawText("DATE : ", 440, 730, 8, false);
-    this._drawText(date_formattedDateUTC, 470, 730, 8);
   }
 
-  _drawCustomerInfoCOO() {
-    const labelSize = 8;
-    const valueSize = 8;
+  _drawLabelValue(label, value, x, y, size = CERT_FONT_SIZE) {
+    this._drawText(label, x, y, size, false);
+    this._drawText(value, x + this.font.widthOfTextAtSize(label, size), y, size);
+  }
 
+  _drawFitText(text, y, bold = true, center = false, maxSize = CERT_FONT_SIZE) {
+    const font = bold ? this.bold : this.font;
+    const maxWidth = 515;
+    const size = Math.min(maxSize, maxSize * maxWidth / font.widthOfTextAtSize(text, maxSize));
+    const width = font.widthOfTextAtSize(text, size);
+    const x = center ? (this.page.getWidth() - width) / 2 : 40;
+    this._drawText(text, x, y, size, bold);
+  }
+
+  _drawCertTitle(title) {
+    const date = this._formatCertDate(this.data.invoice_date || new Date());
+    this._drawLabelValue("DATE : ", date, 420, 735);
+
+    const size = 14;
+    const x = (this.page.getWidth() - this.bold.widthOfTextAtSize(title, size)) / 2;
+    this._drawText(title, x, 700, size, true);
+  }
+
+  _drawCertInfo(cfg) {
+    const size = CERT_FONT_SIZE;
+    const gap = CERT_LINE_GAP;
     const leftX = 40;
-    const valueX = 112;
+    const addrX = 80;
+    const rightX = 405;
 
-    const rightLabelX = 400;
-    const rightValueX = 460;
+    let y = 670;
 
-    let startY = 685;
-    let startYright = 670;
-    const lineGap = 15;
+    if (cfg.madeOutTo) {
+      this._drawText("MADE OUT TO : WHOM IT MAY CONCERN", leftX, y, size, true);
+      y -= gap;
+    }
 
-    this._drawText("MADE OUT TO : WHOM IT MAY CONCERN", leftX, startY, labelSize, true);
+    // SOLD TO + ฝั่งขวา INVOICE / L/C
+    this._drawLabelValue("SOLD TO : ", (this.data.customer_name || "").toUpperCase(), leftX, y);
+    this._drawLabelValue("INVOICE NO. : ", this.data.invoice_number, rightX, y);
 
-    startY -= lineGap;
-    this._drawText("SOLD TO : ", leftX, startY, labelSize, false);
-    this._drawText((this.data.customer_name || "").toUpperCase(), valueX, startY, valueSize);
+    if (this.data.customer_name?.toUpperCase().includes("MITACHARM") || this.data.customer_name?.toUpperCase().includes("XIAMEN")) {
+      this._drawLabelValue("L/C NO : ", this.data.lc_no, rightX, y - gap);
+    }
 
     for (const key of ["address1", "address2", "address3", "address4", "address5", "address6"]) {
       if (this.data[key]) {
-        startY -= lineGap;
-        this._drawText(this.data[key], valueX, startY, valueSize);
+        y -= gap;
+        this._drawText(this.data[key], addrX, y, size);
       }
     }
 
-    startY -= lineGap;
-    this._drawText("SHIPMENT BY :", leftX, startY, labelSize, false);
-    this._drawText((this.data.vessel || "").toUpperCase(), valueX, startY, valueSize);
-
-    startY -= lineGap;
-    this._drawText("FROM :", leftX, startY, labelSize, false);
-    this._drawText(this.data.loading_port, valueX, startY, valueSize);
-
-    startY -= lineGap;
-    this._drawText("SHIP TO :", leftX, startY, labelSize, false);
-    this._drawText(this.data.destination_port, valueX, startY, valueSize);
-
-    startY -= lineGap;
-    this._drawText("CONTRACT NO. : ", leftX, startY, labelSize, false);
-    this._drawText(this.data.po_number, valueX, startY, valueSize);
-
-    this._drawText("INVOICE NO. : ", rightLabelX, startYright, labelSize, false);
-    this._drawText(this.data.invoice_number, rightValueX, startYright, valueSize);
-
-    if(this.data.customer_name?.toUpperCase().includes("MITACHARM") || this.data.customer_name?.toUpperCase().includes("XIAMEN")) {
-      startYright -= lineGap;
-      this._drawText("L/C NO : ", rightLabelX, startYright, labelSize, false);
-      this._drawText(this.data.lc_no, rightValueX, startYright, valueSize);
-    }
-
+    // SHIPMENT BY + ฝั่งขวา B/L / ETD / ETA เริ่มที่บรรทัดเดียวกัน
+    y -= gap;
+    const right = [];
     // TODO: รอคอนเฟิร์มชื่อ field B/L กับลูกค้า/backend — แสดงเฉพาะเมื่อมีค่า
-    if (this.data.bl_no) {
-      startYright -= lineGap;
-      this._drawText("B/L NO. : ", rightLabelX, startYright, labelSize, false);
-      this._drawText(this.data.bl_no, rightValueX, startYright, valueSize);
+    if (this.data.bl_no) right.push(["B/L NO. : ", this.data.bl_no]);
+    if (cfg.showEtdEta) {
+      right.push(["ETD : ", this._formatCertDate(this.data.etd)]);
+      right.push(["ETA : ", this._formatCertDate(this.data.eta)]);
     }
+    right.forEach(([label, value], i) => this._drawLabelValue(label, value, rightX, y - gap * i));
 
-    y_end = startY;
+    this._drawLabelValue("SHIPMENT BY : ", (this.data.vessel || "").toUpperCase(), leftX, y);
+    y -= gap;
+    this._drawLabelValue("FROM : ", this.data.loading_port, leftX, y);
+    y -= gap;
+    this._drawLabelValue("SHIP TO : ", this.data.destination_port, leftX, y);
+    y -= gap;
+    this._drawLabelValue("CONTRACT NO. : ", this.data.po_number, leftX, y);
+
+    y -= 14;
+    this._drawLine(40, y, 555, y, 1);
+    return y;
   }
 
-  _drawBodyCOO() {
-    let y = y_end - 15;
-    const fontSize = 8;
-    const leftX = 40;
-    const valueX = 150;
-
-    this._drawLine(40, y, 555, y, 1);
-
-    y -= 20;
-    this._drawText("DESCRIPTION OF GOODS : ", leftX, y, fontSize, false);
+  _drawCertDescription(y) {
+    const size = CERT_FONT_SIZE;
+    this._drawText("DESCRIPTION OF GOODS : ", 40, y, size, false);
 
     for (const item of this.data.line_items || []) {
       const descs = [
@@ -3508,18 +3540,102 @@ class InvoiceGenerator {
       ].filter(d => d != null && d != "");
 
       for (const d of descs) {
-        this._drawText(d, valueX, y, fontSize);
-        y -= 15;
+        this._drawText(d, 170, y, size);
+        y -= CERT_LINE_GAP;
+      }
+    }
+    return y;
+  }
+
+  _drawBodyCOO(y) {
+    y = this._drawCertDescription(y - 22);
+    y -= 20;
+    this._drawFitText("WE HEREBY DECLARE THAT THE ABOVE MENTIONED PRODUCTS WERE PRODUCED IN THAILAND BY GENERAL STARCH LIMITED", y);
+    return y;
+  }
+
+  _drawBodyNonWood(y) {
+    y = this._drawCertDescription(y - 22);
+    y -= 20;
+    this._drawFitText("IT IS DECLARED THAT THIS SHIPMENT DOES NOT CONTAIN WOOD PACKING MATERIALS.", y, true, true);
+    return y;
+  }
+
+  _drawBodyQuality(y) {
+    const size = CERT_FONT_SIZE;
+    const gap = CERT_LINE_GAP;
+    const leftX = 40;
+    const kg = (n) => Number(n || 0).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }) + " KG.";
+
+    y -= 18;
+    this._drawFitText("WE HEREBY CERTIFY THAT AT THE TIME OF STUFFING INTO CONTAINERS, A SHIPMENT WAS SAID TO CONSIST OF :-", y, true, true);
+
+    y = this._drawCertDescription(y - 22);
+
+    this._drawLabelValue("QUANTITY/WEIGHT OF SHIPPED GOODS : ", this.data.quantity, leftX, y);
+
+    y -= gap;
+    this._drawLabelValue("PACKING CONDITION : ", this.data.packing_remark, leftX, y);
+    for (const key of ["packing_remark2", "packing_remark3", "packing_remark4", "packing_remark5"]) {
+      if (this.data[key]) {
+        y -= gap;
+        this._drawText(this.data[key], 170, y, size);
       }
     }
 
-    y -= 25;
-    this._drawText(
-      "WE HEREBY DECLARE THAT THE ABOVE MENTIONED PRODUCTS WERE PRODUCED IN THAILAND BY GENERAL STARCH LIMITED",
-      leftX, y, fontSize, true
-    );
+    y -= gap * 2;
+    this._drawText("PLACE OF INSPECTION : GENERAL STARCH LIMITED'S GO DOWN", leftX, y, size, true);
 
-    y_end = y - 120;
+    // น้ำหนักต่อถุง = น้ำหนักรวม / จำนวนถุง
+    const bags = Number(this.data.total_bag_qty) || 0;
+    const perBag = (total) => bags > 0 ? kg(Number(total || 0) / bags) : "";
+
+    const rows = [
+      ["NET WEIGHT OF EACH PACKING : ", perBag(this.data.total_net_weight_kg)],
+      ["TARE WEIGHT OF EACH PACKING : ", perBag(this.data.total_tare_weight)],
+      ["GROSS WEIGHT OF EACH PACKING : ", perBag(this.data.total_gross_weight)],
+      ["TOTAL NET WEIGHT : ", kg(this.data.total_net_weight_kg)],
+      ["TOTAL TARE WEIGHT : ", kg(this.data.total_tare_weight)],
+      ["TOTAL GROSS WEIGHT : ", kg(this.data.total_gross_weight)],
+    ];
+    for (const [label, value] of rows) {
+      y -= gap;
+      this._drawLabelValue(label, value, leftX, y);
+    }
+
+    y -= gap;
+    this._drawLabelValue("SHIPPING MARKS : ", this.data.shipping_remark, leftX, y);
+    for (let i = 2; i <= 10; i++) {
+      const mark = this.data["shipping_remark" + i];
+      if (mark) {
+        y -= gap;
+        this._drawText(mark, 170, y, size);
+      }
+    }
+
+    y -= gap;
+    this._drawText("WE HEREBY CERTIFY THAT THE MENTIONED PRODUCTS HAVE BEEN CHECKED QUALITY AS PER OUR QUALITY", leftX, y, size);
+    y -= gap;
+    this._drawText("ASSURANCE PRACTICES ARE IN GOOD CONDITION.", leftX, y, size);
+    return y;
+  }
+
+  _drawCertFooter(y, signer) {
+    const size = CERT_FONT_SIZE;
+    // ลายเซ็นชิดล่างของหน้า ถ้าเนื้อหายาวลงมาจะเลื่อนตาม
+    y = Math.min(y - 60, 110);
+    const centerX = 470;
+
+    this._drawLine(400, y, 540, y, 1);
+    const center = (text, yy) => {
+      const w = this.bold.widthOfTextAtSize(text, size);
+      this._drawText(text, centerX - w / 2, yy, size, true);
+    };
+    center("AUTHORIZED SIGNATURE", y - 13);
+    center("GENERAL STARCH LIMITED AS " + signer, y - 27);
   }
 
   _splitText(text, maxWidth, font, size) {
