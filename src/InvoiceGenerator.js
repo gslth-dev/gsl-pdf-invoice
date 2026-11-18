@@ -3732,11 +3732,11 @@ class InvoiceGenerator {
       : "";
     const products = [...new Set(items.map(i => i.product_name).filter(Boolean))].join(", ");
 
+    // Importer เป็น fixed text ตามตัวอย่าง INA (ข้อมูลลูกค้าใน Smadi ไม่ครบ)
     const importer = [
-      (this.data.customer_name || "").toUpperCase(),
-      ...["address1", "address2", "address3", "address4", "address5", "address6"]
-        .map(k => this.data[k])
-        .filter(Boolean),
+      "INTERNATIONAL ADDITIVE CONCEPTS INC.",
+      "9200 STOCKPORT PLACE, CHARLOTTE, NC 28273 U.S.A.",
+      "PHONE: 704-504-3555 FAX: 704-504-0780",
     ];
 
     const rows = [
