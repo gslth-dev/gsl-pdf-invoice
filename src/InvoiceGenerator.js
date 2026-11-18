@@ -96,6 +96,8 @@ class InvoiceGenerator {
       this._drawFooterPack();
     } else if (CERTIFICATE_TYPES[this.data.invoice_type]) {
       this._drawCertificate(CERTIFICATE_TYPES[this.data.invoice_type]);
+    } else if (this.data.invoice_type == "letter_of_declaration") {
+      this._drawLetterOfDeclaration();
     } else if (this.data.invoice_type == "customs_invoice" || this.data.invoice_type == "commercial_invoice") {
       this._drawTitle();
       this._drawCustomerInfo();
@@ -3490,7 +3492,8 @@ class InvoiceGenerator {
     this._drawLabelValue("SOLD TO : ", (this.data.customer_name || "").toUpperCase(), leftX, y);
     this._drawLabelValue("INVOICE NO. : ", this.data.invoice_number, rightX, y);
 
-    if (this.data.customer_name?.toUpperCase().includes("MITACHARM") || this.data.customer_name?.toUpperCase().includes("XIAMEN")) {
+    // L/C แสดงเฉพาะเมื่อมีค่า (ต่างจากฟอร์มเดิมที่เช็กจากชื่อลูกค้า)
+    if (this.data.lc_no) {
       this._drawLabelValue("L/C NO : ", this.data.lc_no, rightX, y - gap);
     }
 
@@ -3504,7 +3507,7 @@ class InvoiceGenerator {
     // SHIPMENT BY + ฝั่งขวา B/L / ETD / ETA เริ่มที่บรรทัดเดียวกัน
     y -= gap;
     const right = [];
-    // TODO: รอคอนเฟิร์มชื่อ field B/L กับลูกค้า/backend — แสดงเฉพาะเมื่อมีค่า
+    // B/L แสดงเฉพาะเมื่อมีค่า
     if (this.data.bl_no) right.push(["B/L NO. : ", this.data.bl_no]);
     if (cfg.showEtdEta) {
       right.push(["ETD : ", this._formatCertDate(this.data.etd)]);
@@ -3636,6 +3639,110 @@ class InvoiceGenerator {
     };
     center("AUTHORIZED SIGNATURE", y - 13);
     center("GENERAL STARCH LIMITED AS " + signer, y - 27);
+  }
+
+  // ===== Letter of Declaration =====
+
+  _formatLetterDate(value) {
+    if (value == null || value === "") return "";
+    return new Date(value).toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC'
+    });
+  }
+
+  // วาดย่อหน้าแบบตัดบรรทัดอัตโนมัติ รองรับคำที่ต้องเป็นตัวหนา+ขีดเส้นใต้
+  _drawRichParagraph(tokens, x, y, maxWidth, size, gap) {
+    const words = [];
+    for (const t of tokens) {
+      for (const w of t.text.split(' ').filter(Boolean)) {
+        words.push({ text: w, bold: !!t.bold, underline: !!t.underline });
+      }
+    }
+    const space = this.font.widthOfTextAtSize(' ', size);
+    let cx = x;
+    for (const w of words) {
+      const font = w.bold ? this.bold : this.font;
+      const width = font.widthOfTextAtSize(w.text, size);
+      if (cx > x && cx + width > x + maxWidth) {
+        cx = x;
+        y -= gap;
+      }
+      this._drawText(w.text, cx, y, size, w.bold);
+      if (w.underline) this._drawLine(cx, y - 2, cx + width, y - 2, 0.8);
+      cx += width + space;
+    }
+    return y;
+  }
+
+  _drawLetterOfDeclaration() {
+    const size = 11;
+    const gap = 18;
+    const leftX = 70;
+    const colonX = 210;
+    const valueX = 235;
+
+    let y = 690;
+    this._drawText("To whom it may concern:", leftX, y, size);
+
+    y -= 50;
+    const title = "Letter of Declaration";
+    const titleSize = 16;
+    this._drawText(title, (this.page.getWidth() - this.bold.widthOfTextAtSize(title, titleSize)) / 2, y, titleSize, true);
+
+    y -= 45;
+    y = this._drawRichParagraph([
+      { text: "I, General Starch limited, hereby declare that the articles described below were produced in" },
+      { text: "Thailand", bold: true, underline: true },
+      { text: "by means of process operations performed in that country as set forth below and were also subjected to processing operations in the other country or countries are members of the same association of countries as set forth below and incorporate materials produced in the country named above or other country or countries which are members of the same association of countries as set forth below:" },
+    ], leftX, y, 455, size, gap);
+
+    // จำนวนรวมจาก line_items เช่น "153 MT"
+    const items = this.data.line_items || [];
+    const totalQty = items.reduce((sum, i) => sum + (Number(i.quantity) || 0), 0);
+    const uom = items.find(i => i.uom)?.uom || "MT";
+    const quantity = totalQty
+      ? totalQty.toLocaleString('en-US', { maximumFractionDigits: 2 }) + " " + uom
+      : "";
+    const products = [...new Set(items.map(i => i.product_name).filter(Boolean))].join(", ");
+
+    const importer = [
+      (this.data.customer_name || "").toUpperCase(),
+      ...["address1", "address2", "address3", "address4", "address5", "address6"]
+        .map(k => this.data[k])
+        .filter(Boolean),
+    ];
+
+    const rows = [
+      ["Importer", importer],
+      ["Invoice", [this.data.invoice_number]],
+      ["Dated", [this._formatLetterDate(this.data.invoice_date)]],
+      ["Product", [products]],
+      ["Quantity", [quantity]],
+      ["Description of Process", ["Tapioca Root to Starch Modification Drying & Packing"]],
+      ["Country of Process", ["Thailand"]],
+      ["Costs of Processing", [this.data.costs_of_processing]],
+      ["Date of Shipment", [this._formatLetterDate(this.data.etd)]],
+    ];
+
+    y -= 35;
+    for (const [label, values] of rows) {
+      this._drawText(label, leftX, y, size);
+      this._drawText(":", colonX, y, size);
+      values.forEach((v, i) => {
+        if (i > 0) y -= gap;
+        this._drawText(v, valueX, y, size);
+      });
+      y -= gap;
+    }
+
+    y -= 35;
+    this._drawText("Yours Sincerely,", leftX, y, size);
+    y -= 28;
+    this._drawText("General Starch Limited.", leftX, y, size);
+    // ด้านล่างเว้นไว้สำหรับตราประทับ/ลายเซ็น (ลูกค้าให้ตัดชื่อผู้ลงนามออก)
   }
 
   _splitText(text, maxWidth, font, size) {
