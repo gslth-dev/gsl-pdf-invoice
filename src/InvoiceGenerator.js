@@ -18,6 +18,9 @@ let start_page_new = 0;
 // เอกสาร certificate: แต่ละ invoice_type ใช้ส่วนหัว/ลายเซ็นร่วมกัน
 const CERT_FONT_SIZE = 9;
 const CERT_LINE_GAP = 16;
+// ช่องตราประทับ+ลายเซ็น (วัดจากตัวอย่างลูกค้า ~114x80pt) — วางไฟล์ไว้ที่ src/images/GSL_stamp.png
+const STAMP_IMAGE = path.resolve(__dirname, './images/GSL_stamp.png');
+const STAMP_BOX = { width: 120, height: 85 };
 const CERTIFICATE_TYPES = {
   certificate_of_origin: {
     title: "CERTIFICATE OF ORIGIN",
@@ -78,6 +81,10 @@ class InvoiceGenerator {
     this.boldItalic = await this.pdfDoc.embedFont(boldItalicBytes);
 
     await this._drawHeader();
+    this.stamp = null;
+    if ((CERTIFICATE_TYPES[this.data.invoice_type] || this.data.invoice_type == "letter_of_declaration") && fs.existsSync(STAMP_IMAGE)) {
+      this.stamp = await this.pdfDoc.embedPng(fs.readFileSync(STAMP_IMAGE));
+    }
 
     if(this.data.invoice_type == "performa_invoice" || this.data.invoice_type == "order_confirmation") {
       this._drawTitlePI();
@@ -3626,11 +3633,27 @@ class InvoiceGenerator {
     return y;
   }
 
+  // วางตราในกล่อง STAMP_BOX ตามสัดส่วนรูป; ไม่มีไฟล์ = เว้นที่ว่างไว้
+  // ตั้ง env STAMP_DEBUG=1 เพื่อดูกรอบช่อง
+  _drawStamp(x, y) {
+    const { width, height } = STAMP_BOX;
+    if (process.env.STAMP_DEBUG) {
+      this.page.drawRectangle({ x, y, width, height, borderColor: rgb(1, 0, 0), borderWidth: 0.5 });
+    }
+    if (!this.stamp) return;
+    const scale = Math.min(width / this.stamp.width, height / this.stamp.height);
+    const w = this.stamp.width * scale;
+    const h = this.stamp.height * scale;
+    this.page.drawImage(this.stamp, { x: x + (width - w) / 2, y: y + (height - h) / 2, width: w, height: h });
+  }
+
   _drawCertFooter(y, signer) {
     const size = CERT_FONT_SIZE;
-    // ลายเซ็นชิดล่างของหน้า ถ้าเนื้อหายาวลงมาจะเลื่อนตาม
-    y = Math.min(y - 60, 110);
+    // ลายเซ็นชิดล่างของหน้า ถ้าเนื้อหายาวลงมาจะเลื่อนตาม (เผื่อที่ให้ตราด้านบน)
+    y = Math.min(y - STAMP_BOX.height - 15, 110);
     const centerX = 470;
+
+    this._drawStamp(centerX - STAMP_BOX.width / 2, y + 3);
 
     this._drawLine(400, y, 540, y, 1);
     const center = (text, yy) => {
@@ -3640,6 +3663,7 @@ class InvoiceGenerator {
     center("AUTHORIZED SIGNATURE", y - 13);
     center("GENERAL STARCH LIMITED AS " + signer, y - 27);
   }
+
 
   // ===== Letter of Declaration =====
 
@@ -3742,7 +3766,8 @@ class InvoiceGenerator {
     this._drawText("Yours Sincerely,", leftX, y, size);
     y -= 28;
     this._drawText("General Starch Limited.", leftX, y, size);
-    // ด้านล่างเว้นไว้สำหรับตราประทับ/ลายเซ็น (ลูกค้าให้ตัดชื่อผู้ลงนามออก)
+    // ตราประทับ/ลายเซ็นใต้ชื่อบริษัท (ลูกค้าให้ตัดชื่อผู้ลงนามออก)
+    this._drawStamp(leftX, y - 8 - STAMP_BOX.height);
   }
 
   _splitText(text, maxWidth, font, size) {
